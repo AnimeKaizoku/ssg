@@ -9,14 +9,21 @@ const (
 )
 
 const (
-	JA_FLAG       = "〰〰"
-	JA_STR        = "❞" // start character (") for string in japanese.
-	JA_EQUALITY   = "＝" // equal character (＝) for string in japanese.
-	JA_DDOT       = "：" // equal character (＝) for string in japanese.
-	BACK_STR      = "\\\""
-	BACK_FLAG     = "\\--"
-	BACK_EQUALITY = "\\="
-	BACK_DDOT     = "\\:"
+	JA_Flag       = "〰\u200d；〰"
+	JA_Str        = "❞\u200d；" // start character (") for string in japanese.
+	JA_Equality   = "＝\u200d；" // equal character (＝) in japanese.
+	JA_Ddot       = "：\u200d；" // ddot character (:) in japanese.
+	JA_Cama       = "、\u200d；" // cama character (,) in japanese.
+	JA_RealStr    = "\uff4e"   // the real str
+	JA_BrOpen     = "「\u200d；" // the real str
+	JA_BrClose    = "」\u200d；" // the real str
+	BACK_Str      = `\"`
+	BACK_Flag     = `\--`
+	BACK_Equality = `\=`
+	BACK_Ddot     = `\:`
+	BACK_Cama     = `\,`
+	BACK_BrOpen   = `\[`
+	BACK_BrClose  = `\]`
 )
 
 // the base constant values.
@@ -28,14 +35,14 @@ const (
 // additional constants which are not actually used in
 // this package, but may be useful in another packages.
 const (
-	BaseIndexStr    = "0"  // number 0
-	BaseOneIndexStr = "1"  // number 1
-	DotStr          = "."  // dot : .
-	LineStr         = "-"  // line : -
-	EMPTY           = ""   //an empty string.
-	UNDER           = "_"  // an underscope : _
-	STR_SIGN        = "\"" // the string sign : "
-	CHAR_STR        = '"'  // the string sign : '"'
+	BaseIndexStr    = "0" // number 0
+	BaseOneIndexStr = "1" // number 1
+	DotStr          = "." // dot : .
+	LineStr         = "-" // line : -
+	EMPTY           = ""  //an empty string.
+	UNDER           = "_" // an underscope : _
+	STR_SIGN        = `"` // the string sign : "
+	CHAR_STR        = '"' // the string sign : '"'
 )
 
 // router config values
@@ -74,8 +81,10 @@ const (
 )
 
 const (
-	LineChar   = '-' // line : '-'
-	EqualChar  = '=' // equal: '='
-	SpaceChar  = ' ' // space: ' '
-	DPointChar = ':' // double point: ':'
+	LineChar         = '-' // line : '-'
+	EqualChar        = '=' // equal: '='
+	SpaceChar        = ' ' // space: ' '
+	DPointChar       = ':' // double point: ':'
+	BracketOpenChar  = '['
+	BracketcloseChar = ']'
 )

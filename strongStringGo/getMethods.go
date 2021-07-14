@@ -287,7 +287,7 @@ func (s *StrongString) LockSpecial() {
 	// replacing escaped string characters
 	// (I mean escaped double quetion mark) is necessary before
 	// repairing value.
-	final = strings.ReplaceAll(final, BACK_STR, JA_STR)
+	final = strings.ReplaceAll(final, BACK_Str, JA_Str)
 
 	// let it repair the string.
 	// this function is for repairing these special characters
@@ -299,9 +299,9 @@ func (s *StrongString) LockSpecial() {
 	// hahaha, you see, it's actually usefull.
 	final = *repairString(&final)
 
-	final = strings.ReplaceAll(final, BACK_FLAG, JA_FLAG)
-	final = strings.ReplaceAll(final, BACK_EQUALITY, JA_EQUALITY)
-	final = strings.ReplaceAll(final, BACK_DDOT, JA_DDOT)
+	final = strings.ReplaceAll(final, BACK_Flag, JA_Flag)
+	final = strings.ReplaceAll(final, BACK_Equality, JA_Equality)
+	final = strings.ReplaceAll(final, BACK_Ddot, JA_Ddot)
 
 	s._value = make([]rune, BaseIndex)
 	for _, c := range final {
@@ -315,10 +315,72 @@ func (s *StrongString) LockSpecial() {
 // it will return them to their normal form.
 func (s *StrongString) UnlockSpecial() {
 	final := s.GetValue()
-	final = strings.ReplaceAll(final, JA_FLAG, FLAG_PREFIX)
-	final = strings.ReplaceAll(final, JA_STR, STR_SIGN)
-	final = strings.ReplaceAll(final, JA_EQUALITY, EqualStr)
-	final = strings.ReplaceAll(final, JA_DDOT, DdotSign)
+	final = strings.ReplaceAll(final, JA_Flag, FLAG_PREFIX)
+	final = strings.ReplaceAll(final, JA_Str, STR_SIGN)
+	final = strings.ReplaceAll(final, JA_Equality, EqualStr)
+	final = strings.ReplaceAll(final, JA_Ddot, DdotSign)
+
+	s._value = make([]rune, BaseIndex)
+	for _, c := range final {
+		if c != BaseIndex {
+			s._value = append(s._value, c)
+		}
+	}
+}
+
+// LockSpecial will lock all the defiend special characters.
+// This way, you don't actually have to be worry about
+// some normal mistakes in spliting strings, cut them out,
+// check them. join them, etc...
+// WARNING: this method is so dangerous, it's really
+// dangerous. we can't say that it's unsafe actually,
+// but still it's really dangerous, so if you don't know what the
+// fuck are you doing, then please don't use this method.
+// this method will not return you a new value, it will effect the
+// current value. please consider using it carefully.
+func (s *StrongString) LockSpecialHigh() {
+	final := s.GetValue()
+	// replacing escaped string characters
+	// (I mean escaped double quetion mark) is necessary before
+	// repairing value.
+	final = strings.ReplaceAll(final, BACK_Str, JA_RealStr)
+
+	// let it repair the string.
+	// this function is for repairing these special characters
+	// and strings:
+	// '=', ':' and "=="
+	// it will escape them.
+	// if it wasn't for this function, members had to
+	// escape all of these bullshits themselves...
+	// hahaha, you see, it's actually usefull.
+	final = *repairStringHigh(&final)
+
+	final = strings.ReplaceAll(final, BACK_Flag, JA_Flag)
+	final = strings.ReplaceAll(final, BACK_Equality, JA_Equality)
+	final = strings.ReplaceAll(final, BACK_Ddot, JA_Ddot)
+	final = strings.ReplaceAll(final, BACK_Cama, JA_Cama)
+	final = strings.ReplaceAll(final, BACK_BrOpen, JA_BrOpen)
+	final = strings.ReplaceAll(final, BACK_BrClose, JA_BrClose)
+
+	s._value = make([]rune, BaseIndex)
+	for _, c := range final {
+		if c != BaseIndex {
+			s._value = append(s._value, c)
+		}
+	}
+}
+
+// UnlockSpecial will unlock all the defiend special characters.
+// it will return them to their normal form.
+func (s *StrongString) UnlockSpecialHigh() {
+	final := s.GetValue()
+	final = strings.ReplaceAll(final, JA_Flag, FLAG_PREFIX)
+	final = strings.ReplaceAll(final, JA_RealStr, BACK_Str)
+	final = strings.ReplaceAll(final, JA_Equality, EqualStr)
+	final = strings.ReplaceAll(final, JA_Ddot, DdotSign)
+	final = strings.ReplaceAll(final, JA_Cama, CAMA)
+	final = strings.ReplaceAll(final, JA_BrOpen, BracketOpen)
+	final = strings.ReplaceAll(final, JA_BrOpen, Bracketclose)
 
 	s._value = make([]rune, BaseIndex)
 	for _, c := range final {

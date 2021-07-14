@@ -18,3 +18,4 @@
 module github.com/ALiwoto/StrongStringGo
 
 go 1.12
+
