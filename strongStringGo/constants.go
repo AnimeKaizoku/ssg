@@ -85,6 +85,7 @@ const (
 	EqualChar        = '=' // equal: '='
 	SpaceChar        = ' ' // space: ' '
 	DPointChar       = ':' // double point: ':'
-	BracketOpenChar  = '['
-	BracketcloseChar = ']'
+	BracketOpenChar  = '[' // bracket open: '['
+	BracketcloseChar = ']' // bracket close: ']'
+	CamaChar         = ',' // cama: ','
 )

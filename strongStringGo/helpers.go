@@ -323,7 +323,7 @@ func isSpecial(r rune) bool {
 func isSpecialHigh(r rune) bool {
 	switch r {
 	case EqualChar, DPointChar,
-		BracketOpenChar, BracketcloseChar:
+		BracketOpenChar, BracketcloseChar, CamaChar:
 		return true
 	default:
 		return false
