@@ -1,49 +1,29 @@
-// Bot.go Project
-// Copyright (C) 2021 Sayan Biswas, ALiwoto
+// StrongStringGo Project
+// Copyright (C) 2021 ALiwoto
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE', which is part of the source code.
 
 package strongStringGo
 
 import (
+	"regexp"
 	"strings"
-
-	sin "github.com/ALiwoto/StrongStringGo/strongStringGo/strongInterfaces"
+	"unicode"
 )
 
 // Ss will generate a new StrongString
 // with the specified non-encoded string value.
 func Ss(s string) StrongString {
-	strong := StrongString{}
-	strong._setValue(s)
-	return strong
-}
-
-// SsTrimSpace will trim all whitespaces of the
-// specified string value and then will
-// generate a new StrongString with that value.
-func SsTrimSpace(s string) StrongString {
-	s = strings.TrimSpace(s)
-	strong := StrongString{}
-	strong._setValue(s)
-	return strong
-}
-
-// SsTrim will trim all leading and
-// trailing Unicode code points contained in cutset of the
-// specified string value and then will
-// generate a new StrongString with that value.
-func SsTrim(s, cutset string) StrongString {
-	s = strings.Trim(s, cutset)
-	strong := StrongString{}
-	strong._setValue(s)
-	return strong
+	_strong := StrongString{}
+	_strong._setValue(s)
+	return _strong
 }
 
 // Qss will generate a new QString
 // with the specified non-encoded string value.
-func Qss(s string) sin.QString {
-	return SsPtr(s)
+func Qss(s string) QString {
+	str := Ss(s)
+	return &str
 }
 
 // Sb will generate a new StrongString
@@ -52,16 +32,11 @@ func Sb(b []byte) StrongString {
 	return Ss(string(b))
 }
 
-// Sb will generate a new StrongString pointer
-// with the specified non-encoded bytes value.
-func SbPtr(b []byte) *StrongString {
-	return SsPtr(string(b))
-}
-
 // QSb will generate a new QString
 // with the specified non-encoded bytes value.
-func Qsb(b []byte) sin.QString {
-	return SsPtr(string(b))
+func Qsb(b []byte) QString {
+	str := Ss(string(b))
+	return &str
 }
 
 // SS will generate a new StrongString
@@ -72,7 +47,7 @@ func SsPtr(s string) *StrongString {
 	return &strong
 }
 
-func ToStrSlice(qs []sin.QString) []string {
+func ToStrSlice(qs []QString) []string {
 	tmp := make([]string, len(qs))
 	for i, current := range qs {
 		tmp[i] = current.GetValue()
@@ -80,8 +55,8 @@ func ToStrSlice(qs []sin.QString) []string {
 	return tmp
 }
 
-func ToQSlice(strs []string) []sin.QString {
-	tmp := make([]sin.QString, len(strs))
+func ToQSlice(strs []string) []QString {
+	tmp := make([]QString, len(strs))
 	for i, current := range strs {
 		tmp[i] = SsPtr(current)
 	}
@@ -89,81 +64,65 @@ func ToQSlice(strs []string) []sin.QString {
 }
 
 func Split(s string, separator ...string) []string {
-	if len(separator) == BaseIndex {
-		return nil
-	}
+	return SplitSliceN(s, separator, -1)
+}
 
-	final := s
-	for _, myStr := range separator {
-		final = strings.ReplaceAll(final, myStr, sepStr)
-	}
-
-	return FixSplit(strings.Split(final, sepStr))
+// SplitWhite splits the string with the given separator
+// and will remove the white spaces slices from the results
+func SplitWhite(s string, separator ...string) []string {
+	return SplitSliceNWhite(s, separator, -1)
 }
 
 func SplitN(s string, n int, separator ...string) []string {
-	if len(separator) == BaseIndex {
-		return nil
-	}
-
-	rep := n - BaseOneIndex
-	final := s
-	done := BaseIndex
-
-	for _, myStr := range separator {
-		if done < rep {
-			if strings.Contains(final, myStr) {
-				final = strings.Replace(final, myStr, sepStr, rep)
-				done++
-			}
-		} else {
-			break
-		}
-
-	}
-
-	theS := strings.SplitN(final, sepStr, n)
-
-	return FixSplit(theS)
+	return SplitSliceN(s, separator, n)
 }
 
 func SplitSlice(s string, separator []string) []string {
-	if len(separator) == BaseIndex {
-		return nil
-	}
-
-	final := s
-	for _, myStr := range separator {
-		final = strings.ReplaceAll(final, myStr, sepStr)
-	}
-
-	return FixSplit(strings.Split(final, sepStr))
+	return SplitSliceN(s, separator, -1)
 }
 
 func SplitSliceN(s string, separator []string, n int) []string {
 	if len(separator) == BaseIndex {
-		return nil
+		return []string{s}
 	}
 
-	rep := n - BaseOneIndex
-	final := s
-	done := BaseIndex
-
-	for _, myStr := range separator {
-		if done < rep {
-			if strings.Contains(final, myStr) {
-				final = strings.Replace(final, myStr, sepStr, rep)
-				done++
-			}
+	var m string
+	for i, f := range separator {
+		if i != len(separator)-1 {
+			m += regexp.QuoteMeta(f) + OrRegexp
 		} else {
-			break
+			m += regexp.QuoteMeta(f)
 		}
-
 	}
 
-	theS := strings.SplitN(final, sepStr, n)
+	re, err := regexp.Compile(m)
+	if err != nil {
+		return []string{s}
+	}
 
-	return FixSplit(theS)
+	return FixSplit(re.Split(s, n))
+}
+
+func SplitSliceNWhite(s string, separator []string, n int) []string {
+	if len(separator) == BaseIndex {
+		return []string{s}
+	}
+
+	var m string
+	for i, f := range separator {
+		if i != len(separator)-1 {
+			m += regexp.QuoteMeta(f) + OrRegexp
+		} else {
+			m += regexp.QuoteMeta(f)
+		}
+	}
+
+	re, err := regexp.Compile(m)
+	if err != nil {
+		return []string{s}
+	}
+
+	return FixSplitWhite(re.Split(s, n))
 }
 
 // FixSplit will fix the bullshit bug in the
@@ -180,13 +139,38 @@ func FixSplit(myStrings []string) []string {
 	return final
 }
 
+// FixSplit will fix the bullshit bug in the
+// Split function (which is not ignoring the spaces between strings).
+func FixSplitWhite(myStrings []string) []string {
+	final := make([]string, BaseIndex, cap(myStrings))
+
+	for _, current := range myStrings {
+		if strings.TrimSpace(current) != "" {
+			final = append(final, current)
+		}
+	}
+
+	return final
+}
+
 // IsEmpty function will check if the passed-by
 // string value is empty or not.
 func IsEmpty(s *string) bool {
-	return len(*s) == BaseIndex
+	return s == nil || len(*s) == BaseIndex
 }
 
-// YesOrNo returns yes if v is true, otherwise no,
+// AreEqual will check if two string ptr are equal to each other or not.
+func AreEqual(s1, s2 *string) bool {
+	if s1 == nil && s2 != nil {
+		return len(*s2) == 0
+	} else if s1 != nil && s2 == nil {
+		return len(*s1) == 0
+	}
+
+	return s1 == s2 || *s1 == *s2
+}
+
+// YesOrNo returns yes if v is true, otherwise no.
 func YesOrNo(v bool) string {
 	if v {
 		return Yes
@@ -195,13 +179,38 @@ func YesOrNo(v bool) string {
 	}
 }
 
-// repairString will go through a string and will repair it.
-// In fact, it will escape all special characters between '"' and '"'
-// in the specified string.
-// For example this value:
-//  hello how are you? "I'm = okay"
-// will become this:
-//  hello how are you? "I'm \= okay"
+func ToArray(strs ...string) []string {
+	return strs
+}
+
+func IsAllNumber(str string) bool {
+	for _, s := range str {
+		if !IsRuneNumber(s) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsAllNumbers(str ...string) bool {
+	for _, ss := range str {
+		if !IsAllNumber(ss) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsRuneNumber(r rune) bool {
+	if r <= unicode.MaxLatin1 {
+		return '0' <= r && r <= '9'
+	}
+
+	return false
+}
+
 func repairString(value *string) *string {
 	entered := false
 	ignoreNext := false
@@ -253,64 +262,6 @@ func repairString(value *string) *string {
 	return &final
 }
 
-// repairString will go through a string and will repair it.
-// In fact, it will escape all special characters between '"' and '"'
-// in the specified string.
-// For example this value:
-//  hello how are you? "I'm = okay"
-// will become this:
-//  hello how are you? "I'm \= okay"
-func repairStringHigh(value *string) *string {
-	entered := false
-	ignoreNext := false
-	final := EMPTY
-	last := len(*value) - BaseIndex
-	next := BaseIndex
-	for i, current := range *value {
-		if ignoreNext {
-			ignoreNext = false
-			continue
-		}
-
-		if string(current) == JA_RealStr {
-			if !entered {
-				entered = true
-			} else {
-				entered = false
-			}
-
-			final += string(current)
-			continue
-		} else {
-			if !entered {
-				final += string(current)
-				continue
-			}
-
-			if isSpecialHigh(current) {
-				final += BackSlash + string(current)
-				continue
-			} else {
-				if current == LineChar {
-					if i != last {
-						next = i + BaseOneIndex
-						if (*value)[next] == LineChar {
-							final += BackSlash +
-								string(current) + string(current)
-							ignoreNext = true
-							continue
-						}
-					}
-				}
-			}
-		}
-
-		final += string(current)
-	}
-
-	return &final
-}
-
 func isSpecial(r rune) bool {
 	switch r {
 	case EqualChar, DPointChar:
@@ -318,14 +269,5 @@ func isSpecial(r rune) bool {
 	default:
 		return false
 	}
-}
 
-func isSpecialHigh(r rune) bool {
-	switch r {
-	case EqualChar, DPointChar,
-		BracketOpenChar, BracketcloseChar, CamaChar:
-		return true
-	default:
-		return false
-	}
 }

@@ -1,9 +1,9 @@
-// Bot.go Project
-// Copyright (C) 2021 Sayan Biswas, ALiwoto
+// StrongStringGo Project
+// Copyright (C) 2021 ALiwoto
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE', which is part of the source code.
 
-package strongInterfaces
+package strongStringGo
 
 type QString interface {
 	Length() int
@@ -31,6 +31,4 @@ type QString interface {
 	ReplaceStr(qs, newS string) QString
 	LockSpecial()
 	UnlockSpecial()
-	LockSpecialHigh()
-	UnlockSpecialHigh()
 }

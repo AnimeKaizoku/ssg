@@ -1,3 +1,8 @@
+// StrongStringGo Project
+// Copyright (C) 2021 ALiwoto
+// This file is subject to the terms and conditions defined in
+// file 'LICENSE', which is part of the source code.
+
 package strongStringGo
 
 // the prefex values for commands.
@@ -28,8 +33,17 @@ const (
 
 // the base constant values.
 const (
-	BaseIndex    = 0 // number 0
-	BaseOneIndex = 1 // number 1
+	BaseIndex      = 0  // number 0
+	BaseOneIndex   = 1  // number 1
+	BaseTwoIndex   = 2  // number 2
+	BaseThreeIndex = 3  // number 2
+	Base4Bit       = 4  // number 8
+	Base8Bit       = 8  // number 8
+	Base16Bit      = 16 // number 16
+	Base32Bit      = 32 // number 32
+	Base64Bit      = 64 // number 64
+	BaseTimeOut    = 40 // 40 seconds
+	BaseTen        = 10 // 10 seconds
 )
 
 // additional constants which are not actually used in
@@ -70,14 +84,11 @@ const (
 	Point           = "."
 	AutoStr         = "auto"
 	AtSign          = "@"
-	sepStr          = "\u221d\u200d\u200d" + // 'd' row
-		"\u421d\u421d\u022dt\u021d\u768d\u026d" + // 'd' row
-		"\u026f\u046f\u041ff\u049f\u399f\u059f" + // 'f' row
-		"\u027b\u047b\u042bb\u050b\u400b\u099b" // 'b' row
-	EqualStr = "="
-	DdotSign = ":"
-	Yes      = "Yes"
-	No       = "No"
+	EqualStr        = "="
+	DdotSign        = ":"
+	Yes             = "Yes"
+	No              = "No"
+	OrRegexp        = "|" // the or string sign: "|"
 )
 
 const (
@@ -88,4 +99,15 @@ const (
 	BracketOpenChar  = '[' // bracket open: '['
 	BracketcloseChar = ']' // bracket close: ']'
 	CamaChar         = ',' // cama: ','
+)
+
+const (
+	JA_FLAG       = "〰〰"
+	JA_STR        = "❞" // start character (") for string in japanese.
+	JA_EQUALITY   = "＝" // equal character (＝) for string in japanese.
+	JA_DDOT       = "：" // equal character (＝) for string in japanese.
+	BACK_STR      = "\\\""
+	BACK_FLAG     = "\\--"
+	BACK_EQUALITY = "\\="
+	BACK_DDOT     = "\\:"
 )
