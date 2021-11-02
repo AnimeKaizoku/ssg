@@ -88,6 +88,16 @@ const (
 	DdotSign        = ":"
 	Yes             = "Yes"
 	No              = "No"
+	TrueStr         = "True"
+	FalseStr        = "False"
+	OnStr           = "On"
+	OffStr          = "Off"
+	LowerYes        = "yes"
+	LowerNo         = "no"
+	LowerTrueStr    = "true"
+	LowerFalseStr   = "false"
+	LowerOnStr      = "on"
+	LowerOffStr     = "off"
 	OrRegexp        = "|" // the or string sign: "|"
 )
 

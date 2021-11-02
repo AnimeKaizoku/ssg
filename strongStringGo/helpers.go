@@ -183,6 +183,15 @@ func ToArray(strs ...string) []string {
 	return strs
 }
 
+func ToBool(str string) bool {
+	str = strings.ToLower(strings.TrimSpace(str))
+	if str == LowerYes || str == LowerTrueStr || str == LowerOnStr {
+		return true
+	}
+
+	return false
+}
+
 func IsAllNumber(str string) bool {
 	for _, s := range str {
 		if !IsRuneNumber(s) {

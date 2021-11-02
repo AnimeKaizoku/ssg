@@ -248,6 +248,10 @@ func (s *StrongString) Trim(qs ...QString) QString {
 	return SsPtr(final)
 }
 
+func (s *StrongString) ToBool() bool {
+	return ToBool(s.GetValue())
+}
+
 func (s *StrongString) TrimStr(qs ...string) QString {
 	final := s.GetValue()
 	for _, current := range qs {

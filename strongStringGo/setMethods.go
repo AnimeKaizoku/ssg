@@ -6,12 +6,12 @@
 package strongStringGo
 
 // _setValue will set the bytes value of the StrongString.
-func (_s *StrongString) _setValue(str string) {
-	if _s._value == nil {
-		_s._value = make([]rune, BaseIndex)
+func (s *StrongString) _setValue(str string) {
+	if s._value == nil {
+		s._value = make([]rune, BaseIndex)
 	}
 
 	for _, current := range str {
-		_s._value = append(_s._value, current)
+		s._value = append(s._value, current)
 	}
 }

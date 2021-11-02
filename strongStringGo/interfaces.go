@@ -31,4 +31,5 @@ type QString interface {
 	ReplaceStr(qs, newS string) QString
 	LockSpecial()
 	UnlockSpecial()
+	ToBool() bool
 }
