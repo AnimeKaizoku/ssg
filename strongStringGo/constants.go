@@ -5,7 +5,7 @@
 
 package strongStringGo
 
-// the prefex values for commands.
+// the prefix values for commands.
 const (
 	COMMAND_PREFIX1 = "!"
 	COMMAND_PREFIX2 = "/"

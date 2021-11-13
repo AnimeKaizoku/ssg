@@ -27,43 +27,42 @@ func (s *StrongString) IsEmpty() bool {
 
 // isEqual will check if the passed-by-value in the arg is equal to this
 // StrongString or not.
-func (s *StrongString) IsEqual(_q QString) bool {
-	if reflect.TypeOf(_q) != reflect.TypeOf(s) {
-		return _q.GetValue() == s.GetValue()
+func (s *StrongString) IsEqual(q QString) bool {
+	if reflect.TypeOf(q) != reflect.TypeOf(s) {
+		return q.GetValue() == s.GetValue()
 	}
 
-	_strong, _ok := _q.(*StrongString)
+	strong, _ok := q.(*StrongString)
 	if !_ok {
 		return false
 	}
 	// check if the length of them are equal or not.
-	if len(s._value) != len(_strong._value) {
-		//fmt.Println(len(_s._value), len(_strong._value))
+	if len(s._value) != len(strong._value) {
 		return false
 	}
 	for i := 0; i < len(s._value); i++ {
-		if s._value[i] != _strong._value[i] {
-			//fmt.Println(_s._value[i], _strong._value[i])
+		if s._value[i] != strong._value[i] {
 			return false
 		}
 	}
 	return true
 }
 
-// GetIndexV method will give you the rune in _index.
-func (s *StrongString) GetIndexV(_index int) rune {
+// GetIndexV method will give you the rune in index.
+// if the passed-by `index` is out of range, it will return
+// zero index of the value.
+func (s *StrongString) GetIndexV(index int) rune {
 	if s.IsEmpty() {
 		return BaseIndex
 	}
 
 	l := len(s._value)
 
-	if _index >= l || l < BaseIndex {
-
+	if index >= l || l < BaseIndex {
 		return s._value[BaseIndex]
 	}
 
-	return s._value[_index]
+	return s._value[index]
 }
 
 // HasSuffix will check if at least there is one suffix is
@@ -99,8 +98,30 @@ func (s *StrongString) HasSuffixes(values ...string) bool {
 // presents in this StrongString or not.
 // the StrongString should starts with at least one of these prefixes.
 func (s *StrongString) HasPrefix(values ...string) bool {
+	v := s.GetValue()
+	if len(v) == BaseIndex {
+		return false
+	}
+
 	for _, str := range values {
-		if strings.HasPrefix(s.GetValue(), str) {
+		if strings.HasPrefix(v, str) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// HasRunePrefix will check if at least there is one prefix is
+// presents in this StrongString or not.
+// the StrongString should starts with at least one of these prefixes.
+func (s *StrongString) HasRunePrefix(values ...rune) bool {
+	if len(s._value) == BaseIndex {
+		return false
+	}
+
+	for _, r := range values {
+		if s._value[BaseIndex] == r {
 			return true
 		}
 	}
@@ -115,8 +136,33 @@ func (s *StrongString) HasPrefix(values ...string) bool {
 // HasSuffix method with only one string (the longest string).
 // this way you will just use too much cpu resources.
 func (s *StrongString) HasPrefixes(values ...string) bool {
+	v := s.GetValue()
+	if len(v) == BaseIndex {
+		return false
+	}
+
 	for _, str := range values {
-		if !strings.HasPrefix(s.GetValue(), str) {
+		if !strings.HasPrefix(v, str) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// HasRunePrefixes will check if all of the prefixes are
+// present in this StrongString or not.
+// the StrongString should starts with all of these suffixes.
+// usage of this method is not recommended, since you can use
+// HasSuffix method with only one string (the longest string).
+// this way you will just use too much cpu resources.
+func (s *StrongString) HasRunePrefixes(values ...rune) bool {
+	if len(s._value) == BaseIndex {
+		return false
+	}
+
+	for _, r := range values {
+		if s._value[BaseIndex] != r {
 			return false
 		}
 	}
@@ -271,7 +317,7 @@ func (s *StrongString) ReplaceStr(qs, newS string) QString {
 	return SsPtr(final)
 }
 
-// LockSpecial will lock all the defiend special characters.
+// LockSpecial will lock all the defined special characters.
 // This way, you don't actually have to be worry about
 // some normal mistakes in spliting strings, cut them out,
 // check them. join them, etc...
@@ -284,7 +330,7 @@ func (s *StrongString) ReplaceStr(qs, newS string) QString {
 func (s *StrongString) LockSpecial() {
 	final := s.GetValue()
 	// replacing escaped string characters
-	// (I mean escaped double quetion mark) is necessary before
+	// (I mean escaped double question mark) is necessary before
 	// repairing value.
 	final = strings.ReplaceAll(final, BACK_STR, JA_STR)
 
