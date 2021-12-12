@@ -6,6 +6,7 @@
 package strongStringGo
 
 import (
+	"encoding/json"
 	"regexp"
 	"strings"
 	"unicode"
@@ -183,6 +184,12 @@ func ToArray(strs ...string) []string {
 	return strs
 }
 
+func ParseConfig(value interface{}, filename string) error {
+	_ = json.Unmarshal(nil, value)
+
+	return nil
+}
+
 func ToBool(str string) bool {
 	str = strings.ToLower(strings.TrimSpace(str))
 	if str == LowerYes || str == LowerTrueStr || str == LowerOnStr {
@@ -278,5 +285,4 @@ func isSpecial(r rune) bool {
 	default:
 		return false
 	}
-
 }

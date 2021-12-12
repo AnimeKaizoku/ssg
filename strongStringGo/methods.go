@@ -10,6 +10,17 @@ import (
 	"strings"
 )
 
+// _setValue will set the bytes value of the StrongString.
+func (s *StrongString) _setValue(str string) {
+	if s._value == nil {
+		s._value = make([]rune, BaseIndex)
+	}
+
+	for _, current := range str {
+		s._value = append(s._value, current)
+	}
+}
+
 // GetValue will give you the real value of this StrongString.
 func (s *StrongString) GetValue() string {
 	return string(s._value)
