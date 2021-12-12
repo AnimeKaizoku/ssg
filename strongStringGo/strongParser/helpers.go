@@ -124,8 +124,6 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 		case reflect.Struct:
 			continue
 		case reflect.Ptr:
-			//isCurrentPointer = true
-			//realPointer = currentField
 			fByName := myType.Field(currentIndex)
 			myKind := getPointerKind(fByName.Type)
 
@@ -227,6 +225,23 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 				}
 
 				currentField.SetFloat(theValue)
+			}
+		case reflect.Complex64, reflect.Complex128:
+			if currentField.CanSet() {
+				fByName := myType.Field(currentIndex)
+
+				section := fByName.Tag.Get("section")
+				key := fByName.Tag.Get("key")
+
+				theValue, err := configValue.GetComplex128(section, key)
+				if err != nil {
+					theValue, err = strconv.ParseComplex(fByName.Tag.Get("default"), 128)
+					if theValue == 0 && err != nil {
+						continue
+					}
+				}
+
+				currentField.SetComplex(theValue)
 			}
 		case reflect.Array, reflect.Slice:
 			if currentField.CanSet() {

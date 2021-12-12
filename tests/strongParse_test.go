@@ -8,17 +8,18 @@ import (
 )
 
 type MyConfigStruct struct {
-	TheToken        string   `section:"main" key:"the_token"`
-	BotId           *int64   `section:"main" key:"bot_id"`
-	BotName         *string  `section:"main" key:"bot_name"`
-	BotUsername     string   `section:"telegram" key:"bot_username"`
-	BotOwner        int64    `section:"telegram" key:"bot_owner"`
-	OwnerIds        []int64  `section:"telegram" key:"owner_ids"`
-	OwnerNumbers    []int32  `section:"telegram" key:"owner_numbers"`
-	OwnerNames      []string `section:"telegram" key:"owner_names"`
-	OwnerSupporting []bool   `section:"telegram" key:"owner_supporting"`
-	DatabaseUrl     string   `section:"database" key:"url"`
-	UseSqlite       bool     `section:"database" key:"use_sqlite" default:"true"`
+	TheToken        string     `section:"main" key:"the_token"`
+	BotId           *int64     `section:"main" key:"bot_id"`
+	BotName         *string    `section:"main" key:"bot_name"`
+	BotComplex      complex128 `section:"main" key:"bot_complex"`
+	BotUsername     string     `section:"telegram" key:"bot_username"`
+	BotOwner        int64      `section:"telegram" key:"bot_owner"`
+	OwnerIds        []int64    `section:"telegram" key:"owner_ids"`
+	OwnerNumbers    []int32    `section:"telegram" key:"owner_numbers"`
+	OwnerNames      []string   `section:"telegram" key:"owner_names"`
+	OwnerSupporting []bool     `section:"telegram" key:"owner_supporting"`
+	DatabaseUrl     string     `section:"database" key:"url"`
+	UseSqlite       bool       `section:"database" key:"use_sqlite" default:"true"`
 }
 
 const TheStrValue = `
@@ -26,6 +27,7 @@ const TheStrValue = `
 the_token = 12345:abcd
 bot_id = 202012345
 bot_name = kigyo
+bot_complex = 1.2+3.4i
 
 [telegram]
 bot_username = @kigyorobot

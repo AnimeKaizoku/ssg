@@ -162,10 +162,26 @@ func (p *ConfigParser) GetFloat64(section, option string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	value, err := strconv.ParseFloat(result, 64)
 	if err != nil {
 		return 0, err
 	}
+
+	return value, nil
+}
+
+func (p *ConfigParser) GetComplex128(section, option string) (complex128, error) {
+	result, err := p.Get(section, option)
+	if err != nil {
+		return 0, err
+	}
+
+	value, err := strconv.ParseComplex(result, 128)
+	if err != nil {
+		return 0i, err
+	}
+
 	return value, nil
 }
 
