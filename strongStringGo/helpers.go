@@ -6,10 +6,11 @@
 package strongStringGo
 
 import (
-	"encoding/json"
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/ALiwoto/StrongStringGo/strongStringGo/strongParser"
 )
 
 // Ss will generate a new StrongString
@@ -185,9 +186,7 @@ func ToArray(strs ...string) []string {
 }
 
 func ParseConfig(value interface{}, filename string) error {
-	_ = json.Unmarshal(nil, value)
-
-	return nil
+	return strongParser.ParseConfig(value, filename)
 }
 
 func ToBool(str string) bool {
