@@ -13,6 +13,8 @@ type MyConfigStruct struct {
 	BotName         *string    `section:"main" key:"bot_name"`
 	BotComplex      complex128 `section:"main" key:"bot_complex"`
 	BotUsername     string     `section:"telegram" key:"bot_username"`
+	SinglePrefix    rune       `section:"telegram" key:"single_prefix"`
+	CmdPrefixed     []rune     `section:"telegram" key:"cmd_prefixed"`
 	BotOwner        int64      `section:"telegram" key:"bot_owner"`
 	OwnerIds        []int64    `section:"telegram" key:"owner_ids"`
 	OwnerNumbers    []int32    `section:"telegram" key:"owner_numbers"`
@@ -20,6 +22,12 @@ type MyConfigStruct struct {
 	OwnerSupporting []bool     `section:"telegram" key:"owner_supporting"`
 	DatabaseUrl     string     `section:"database" key:"url"`
 	UseSqlite       bool       `section:"database" key:"use_sqlite" default:"true"`
+}
+
+type MyRuneStruct struct {
+	SinglePrefix rune    `section:"telegram" key:"single_prefix" type:"rune"`
+	CmdPrefixes  []rune  `section:"telegram" key:"cmd_prefixes" type:"[]rune"`
+	shouldIgnore *string `section:"telegram" key:"should_ignore"`
 }
 
 const TheStrValue = `
@@ -36,6 +44,8 @@ owner_ids = 123456, 1234567
 owner_names = sayan, aliwoto, sawada
 owner_numbers = 1234567, 12345678, 123456789
 owner_supporting = true, false, true
+single_prefix = !
+cmd_prefixes = /, !, #
 
 [database]
 url = postgres://user:pass@localhost:5432/dbname
@@ -43,11 +53,27 @@ url = postgres://user:pass@localhost:5432/dbname
 
 `
 
-func TestStrongParse(t *testing.T) {
+func TestStrongParser(t *testing.T) {
 	myValue := &MyConfigStruct{}
 	err := strongParser.ParseStringConfig(myValue, TheStrValue)
 	if err != nil {
 		t.Error(err)
+		return
+	}
+
+	log.Println(myValue)
+}
+
+func TestStrongRuneParser(t *testing.T) {
+	myValue := &MyRuneStruct{}
+	err := strongParser.ParseStringConfig(myValue, TheStrValue)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if myValue.shouldIgnore != nil {
+		t.Error("should ignore should be nil")
 		return
 	}
 

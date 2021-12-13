@@ -157,6 +157,19 @@ func (p *ConfigParser) GetInt64(section, option string) (int64, error) {
 	return value, nil
 }
 
+func (p *ConfigParser) GetRune(section, option string) rune {
+	result, err := p.Get(section, option)
+	if err != nil {
+		return 0
+	}
+
+	if len(result) == 0 {
+		return 0
+	}
+
+	return ([]rune(result))[0]
+}
+
 func (p *ConfigParser) GetFloat64(section, option string) (float64, error) {
 	result, err := p.Get(section, option)
 	if err != nil {
@@ -212,7 +225,7 @@ func (p *ConfigParser) GetStringSlice(section, option string) ([]string, error) 
 
 // getArrayValueToSet returns array value to set.
 // s is section; o is option; k is kind.
-func (p *ConfigParser) getArrayValueToSet(s, o string, k reflect.Kind) (rValue, error) {
+func (p *ConfigParser) getArrayValueToSet(s, o string, k reflect.Kind, isRune bool) (rValue, error) {
 	result, err := p.Get(s, o)
 	if err != nil {
 		return invalidReflectValue, err
@@ -228,7 +241,7 @@ func (p *ConfigParser) getArrayValueToSet(s, o string, k reflect.Kind) (rValue, 
 	case reflect.Int16:
 		return reflect.ValueOf(parseToInt16Array(result)), nil
 	case reflect.Int32:
-		return reflect.ValueOf(parseToInt32Array(result)), nil
+		return reflect.ValueOf(parseToInt32Array(result, isRune)), nil
 	case reflect.Int64:
 		return reflect.ValueOf(parseToInt64Array(result)), nil
 	case reflect.Uint:

@@ -125,6 +125,10 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 			continue
 		case reflect.Ptr:
 			fByName := myType.Field(currentIndex)
+			if !fByName.IsExported() {
+				continue
+			}
+
 			myKind := getPointerKind(fByName.Type)
 
 			if myKind == reflect.Invalid || myKind == reflect.Struct {
@@ -138,6 +142,9 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 		case reflect.String:
 			if currentField.CanSet() {
 				fByName := myType.Field(currentIndex)
+				if !fByName.IsExported() {
+					continue
+				}
 
 				section := fByName.Tag.Get("section")
 				key := fByName.Tag.Get("key")
@@ -155,14 +162,23 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if currentField.CanSet() {
 				fByName := myType.Field(currentIndex)
+				if !fByName.IsExported() {
+					continue
+				}
 
 				section := fByName.Tag.Get("section")
 				key := fByName.Tag.Get("key")
+				fType := strings.ToLower(fByName.Tag.Get("type"))
 
 				theValue, err := configValue.GetInt64(section, key)
-				if err != nil {
+				if err != nil && fType != "rune" {
 					theValue, err = strconv.ParseInt(fByName.Tag.Get("default"), 10, 64)
 					if theValue == 0 && err != nil {
+						continue
+					}
+				} else if fType == "rune" {
+					theValue = int64(configValue.GetRune(section, key))
+					if theValue == 0 {
 						continue
 					}
 				}
@@ -172,6 +188,9 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			if currentField.CanSet() {
 				fByName := myType.Field(currentIndex)
+				if !fByName.IsExported() {
+					continue
+				}
 
 				section := fByName.Tag.Get("section")
 				key := fByName.Tag.Get("key")
@@ -189,6 +208,9 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 		case reflect.Bool:
 			if currentField.CanSet() {
 				fByName := myType.Field(currentIndex)
+				if !fByName.IsExported() {
+					continue
+				}
 
 				section := fByName.Tag.Get("section")
 				key := fByName.Tag.Get("key")
@@ -212,6 +234,9 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 		case reflect.Float32, reflect.Float64:
 			if currentField.CanSet() {
 				fByName := myType.Field(currentIndex)
+				if !fByName.IsExported() {
+					continue
+				}
 
 				section := fByName.Tag.Get("section")
 				key := fByName.Tag.Get("key")
@@ -229,6 +254,9 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 		case reflect.Complex64, reflect.Complex128:
 			if currentField.CanSet() {
 				fByName := myType.Field(currentIndex)
+				if !fByName.IsExported() {
+					continue
+				}
 
 				section := fByName.Tag.Get("section")
 				key := fByName.Tag.Get("key")
@@ -247,11 +275,16 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 			if currentField.CanSet() {
 				fByName := myType.Field(currentIndex)
 				myKind := getArrayKind(fByName.Type)
+				if !fByName.IsExported() {
+					continue
+				}
 
 				section := fByName.Tag.Get("section")
 				key := fByName.Tag.Get("key")
+				fType := strings.ToLower(fByName.Tag.Get("type"))
+				isRune := fType == "rune" || fType == "[]rune"
 
-				valueToSet, err := configValue.getArrayValueToSet(section, key, myKind)
+				valueToSet, err := configValue.getArrayValueToSet(section, key, myKind, isRune)
 				if err != nil || valueToSet.IsNil() || !valueToSet.IsValid() {
 					continue
 				}
@@ -534,12 +567,21 @@ func parseToInt16Array(value string) []int16 {
 	return myInts
 }
 
-func parseToInt32Array(value string) []int32 {
+func parseToInt32Array(value string, isRune bool) []int32 {
 	arr := strings.Split(value, ",")
 	var myInts []int32
 
 	for i := 0; i < len(arr); i++ {
 		arr[i] = strings.TrimSpace(arr[i])
+		if arr[i] == "" {
+			continue
+		}
+
+		if isRune {
+			myInts = append(myInts, int32([]rune(arr[i])[0]))
+			continue
+		}
+
 		theValue, err := strconv.ParseInt(arr[i], 10, 64)
 		if err != nil {
 			continue
