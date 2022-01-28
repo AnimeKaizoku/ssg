@@ -10,13 +10,13 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/ALiwoto/StrongStringGo/strongStringGo"
+	ws "github.com/ALiwoto/StrongStringGo/strongStringGo"
 )
 
 func TestStrong(t *testing.T) {
 	LogStr("Hi")
 	LogInt(5)
-	s := strongStringGo.Qss("hello!; how are you? () are you okay?")
+	s := ws.Qss("hello!; how are you? () are you okay?")
 	if s == nil {
 		t.FailNow()
 	} else {
@@ -29,87 +29,140 @@ func TestStrong(t *testing.T) {
 }
 
 func TestToBool(t *testing.T) {
-	s := strongStringGo.Qss("true")
+	s := ws.Qss("true")
 	if !s.ToBool() {
 		t.Error("Expected true, got false")
 		return
 	}
 
-	s = strongStringGo.Qss("false")
+	s = ws.Qss("false")
 	if s.ToBool() {
 		t.Error("Expected false, got true")
 		return
 	}
 
-	s = strongStringGo.Qss("TRUE")
+	s = ws.Qss("TRUE")
 	if !s.ToBool() {
 		t.Error("Expected true, got false")
 		return
 	}
 
-	s = strongStringGo.Qss("FALSE")
+	s = ws.Qss("FALSE")
 	if s.ToBool() {
 		t.Error("Expected false, got true")
 		return
 	}
 
-	s = strongStringGo.Qss("True")
+	s = ws.Qss("True")
 	if !s.ToBool() {
 		t.Error("Expected true, got false")
 		return
 	}
 
-	s = strongStringGo.Qss("False")
+	s = ws.Qss("False")
 	if s.ToBool() {
 		t.Error("Expected false, got true")
 		return
 	}
 
-	s = strongStringGo.Qss("on")
+	s = ws.Qss("on")
 	if !s.ToBool() {
 		t.Error("Expected true, got false")
 		return
 	}
 
-	s = strongStringGo.Qss("off")
+	s = ws.Qss("off")
 	if s.ToBool() {
 		t.Error("Expected false, got true")
 		return
 	}
 
-	s = strongStringGo.Qss("ON")
+	s = ws.Qss("ON")
 	if !s.ToBool() {
 		t.Error("Expected true, got false")
 		return
 	}
 
-	s = strongStringGo.Qss("OFF")
+	s = ws.Qss("OFF")
 	if s.ToBool() {
 		t.Error("Expected false, got true")
 		return
 	}
 
-	s = strongStringGo.Qss("yes")
+	s = ws.Qss("yes")
 	if !s.ToBool() {
 		t.Error("Expected true, got false")
 		return
 	}
 
-	s = strongStringGo.Qss("no")
+	s = ws.Qss("no")
 	if s.ToBool() {
 		t.Error("Expected false, got true")
 		return
 	}
 
-	s = strongStringGo.Qss("YES")
+	s = ws.Qss("YES")
 	if !s.ToBool() {
 		t.Error("Expected true, got false")
 		return
 	}
 
-	s = strongStringGo.Qss("NO")
+	s = ws.Qss("NO")
 	if s.ToBool() {
 		t.Error("Expected false, got true")
+		return
+	}
+}
+
+func TestIntegerHelpers(t *testing.T) {
+	const (
+		i1       = int64(1)
+		i294     = int64(294)
+		i356     = int64(356)
+		i487     = int64(487)
+		i5900    = int64(5900)
+		i0x98760 = int64(0x98760)
+	)
+
+	s := ws.ToBase10(i1)
+	i := ws.ToInt64(s)
+	if ws.ToInt64(s) != i1 {
+		t.Errorf("Expected %d, got %d", i1, i)
+		return
+	}
+
+	s = ws.ToBase10(i294)
+	i = ws.ToInt64(s)
+	if ws.ToInt64(s) != i294 {
+		t.Errorf("Expected %d, got %d", i294, i)
+		return
+	}
+
+	s = ws.ToBase10(i356)
+	i = ws.ToInt64(s)
+	if ws.ToInt64(s) != i356 {
+		t.Errorf("Expected %d, got %d", i356, i)
+		return
+	}
+
+	s = ws.ToBase10(i487)
+	i = ws.ToInt64(s)
+	if ws.ToInt64(s) != i487 {
+		t.Errorf("Expected %d, got %d", i487, i)
+		return
+	}
+
+	s = ws.ToBase10(i5900)
+	i = ws.ToInt64(s)
+	if ws.ToInt64(s) != i5900 {
+		t.Errorf("Expected %d, got %d", i5900, i)
+		return
+	}
+
+	s = ws.ToBase10(i0x98760)
+	i = ws.ToInt64(s)
+	if ws.ToInt64(s) != i0x98760 {
+		t.Errorf("Expected %d, got %d", i0x98760, i)
 		return
 	}
 }

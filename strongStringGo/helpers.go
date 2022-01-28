@@ -199,6 +199,10 @@ func ToBool(str string) bool {
 	return false
 }
 
+func ToBase10(value int64) string {
+	return strconv.FormatInt(value, 10)
+}
+
 func ToBase16(value int64) string {
 	return strconv.FormatInt(value, 16)
 }
