@@ -7,6 +7,7 @@ package strongStringGo
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -196,6 +197,61 @@ func ToBool(str string) bool {
 	}
 
 	return false
+}
+
+func ToBase16(value int64) string {
+	return strconv.FormatInt(value, 16)
+}
+
+func ToBase18(value int64) string {
+	return strconv.FormatInt(value, 18)
+}
+
+func ToBase20(value int64) string {
+	return strconv.FormatInt(value, 20)
+}
+
+func ToBase28(value int64) string {
+	return strconv.FormatInt(value, 28)
+}
+
+func ToBase30(value int64) string {
+	return strconv.FormatInt(value, 30)
+}
+
+func ToBase32(value int64) string {
+	return strconv.FormatInt(value, 32)
+}
+
+func ToValidIntegerString(value string) string {
+	newValue := ""
+	for _, current := range value {
+		if unicode.IsNumber(current) {
+			newValue += string(current)
+		}
+	}
+
+	return newValue
+}
+
+func ToInt64(value string) int64 {
+	i, _ := strconv.ParseInt(ToValidIntegerString(value), 10, 64)
+	return i
+}
+
+func ToInt32(value string) int32 {
+	i, _ := strconv.ParseInt(ToValidIntegerString(value), 10, 32)
+	return int32(i)
+}
+
+func ToInt16(value string) int16 {
+	i, _ := strconv.ParseInt(ToValidIntegerString(value), 10, 16)
+	return int16(i)
+}
+
+func ToInt8(value string) int8 {
+	i, _ := strconv.ParseInt(ToValidIntegerString(value), 10, 8)
+	return int8(i)
 }
 
 func IsAllNumber(str string) bool {
