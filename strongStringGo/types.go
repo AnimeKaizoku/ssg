@@ -5,6 +5,8 @@
 
 package strongStringGo
 
+import "hash"
+
 // the StrongString used in the program for additional usage.
 type StrongString struct {
 	_value []rune
@@ -37,4 +39,20 @@ type QString interface {
 	LockSpecial()
 	UnlockSpecial()
 	ToBool() bool
+}
+
+type Serializer interface {
+	Serialize() ([]byte, error)
+	StrSerialize() string
+}
+
+type Validator interface {
+	IsValid() bool
+}
+
+type SignatureContainer interface {
+	GetSignature() string
+	SetSignature(signature string) bool
+	SetSignatureByBytes(data []byte) bool
+	SetSignatureByFunc(h func() hash.Hash) bool
 }
