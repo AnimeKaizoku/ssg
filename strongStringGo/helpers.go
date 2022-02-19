@@ -258,6 +258,18 @@ func ToInt8(value string) int8 {
 	return int8(i)
 }
 
+func IsMixedCase(value string) bool {
+	return strings.ToLower(value) != value && strings.ToUpper(value) != value
+}
+
+func IsAllLower(value string) bool {
+	return strings.ToLower(value) == value
+}
+
+func IsAllUpper(value string) bool {
+	return strings.ToUpper(value) == value
+}
+
 func IsAllNumber(str string) bool {
 	for _, s := range str {
 		if !IsRuneNumber(s) {

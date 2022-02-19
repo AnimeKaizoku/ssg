@@ -12,6 +12,22 @@ type StrongString struct {
 	_value []rune
 }
 
+type BytesObject interface {
+	ToBytes() ([]byte, error)
+	Length() int
+}
+
+type IntegerRepresent interface {
+	ToInt64() int64
+	ToUInt64() uint64
+	ToInt32() int32
+	ToUInt32() uint32
+}
+
+type BitsBlocks interface {
+	GetBitsSize() int
+}
+
 type QString interface {
 	Length() int
 	IsEmpty() bool

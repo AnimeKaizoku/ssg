@@ -5,5 +5,5 @@
 
 module github.com/ALiwoto/StrongStringGo
 
-go 1.12
+go 1.17
 
