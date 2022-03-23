@@ -611,3 +611,23 @@ func (s *SafeMap[TKey, TValue]) Set(key TKey, value any) {
 
 	s.Add(key, correctValue)
 }
+
+// Clear will clear the whole map.
+func (s *SafeMap[TKey, TValue]) Clear() {
+	s.lock()
+	if len(s.values) != 0 {
+		s.values = make(map[TKey]*TValue)
+	}
+	s.unlock()
+}
+
+func (s *SafeMap[TKey, TValue]) Length() int {
+	s.lock()
+	l := len(s.values)
+	s.unlock()
+
+	return l
+}
+func (s *SafeMap[TKey, TValue]) IsEmpty() bool {
+	return s.Length() == 0
+}
