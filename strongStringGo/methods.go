@@ -495,12 +495,24 @@ func (l *ListW[T]) Remove(element T) {
 	l.RemoveOnce(element)
 }
 
+// AsArray returns a copy of the value of this list as an array.
+// please do notice that if you make changes to the underlying values of
+// that array, change won't be applied to the list.
 func (l *ListW[T]) AsArray() []T {
 	var arr = make([]T, len(l._values))
 	copy(arr, l._values)
 	return arr
 }
 
+// ToArray is equivalent to AsArray method in any way.
+// it returns a copy of the value of this list as an array.
+// please do notice that if you make changes to the underlying values of
+// that array, change won't be applied to the list.
+func (l *ListW[T]) ToArray() []T {
+	return l.AsArray()
+}
+
+// Clear method clears the whole list.
 func (l *ListW[T]) Clear() {
 	l._values = nil
 }
@@ -628,6 +640,31 @@ func (s *SafeMap[TKey, TValue]) Length() int {
 
 	return l
 }
+
 func (s *SafeMap[TKey, TValue]) IsEmpty() bool {
 	return s.Length() == 0
+}
+
+func (s *SafeMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
+	m := make(map[TKey]TValue)
+	s.lock()
+	for k, v := range s.values {
+		if v == nil {
+			m[k] = s._default
+			continue
+		}
+
+		m[k] = *v
+	}
+	s.unlock()
+
+	return m
+}
+
+func (s *SafeMap[TKey, TValue]) IsThreadSafe() bool {
+	return true
+}
+
+func (s *SafeMap[TKey, TValue]) IsValid() bool {
+	return s.Length() > 0
 }

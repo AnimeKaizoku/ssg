@@ -84,4 +84,23 @@ func TestSafeMap01(t *testing.T) {
 		t.Error("Expected defaultDummy for something something, got:", m3.GetValue("something something"))
 		return
 	}
+
+	normalMap1 := m1.ToNormalMap()
+	if normalMap1 == nil {
+		t.Error("Expected not nil for normalMap1, got:", normalMap1)
+	}
+
+	normalMap2 := m2.ToNormalMap()
+	if normalMap2 == nil {
+		t.Error("Expected not nil for normalMap1, got:", normalMap1)
+	}
+
+	normalMap3 := m3.ToNormalMap()
+	if normalMap3 == nil {
+		t.Error("Expected not nil for normalMap1, got:", normalMap1)
+	}
+
+	if t.Failed() {
+		return
+	}
 }

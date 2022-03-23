@@ -50,6 +50,7 @@ type GenericList[T comparable] interface {
 	RemoveAll(element ...T)
 	Remove(element T)
 	AsArray() []T
+	ToArray() []T
 	Clear()
 	Get(index int) T
 }
