@@ -8,7 +8,10 @@ package strongStringGo
 import (
 	"reflect"
 	"strings"
+	"sync"
 )
+
+//---------------------------------------------------------
 
 // _setValue will set the bytes value of the StrongString.
 func (s *StrongString) _setValue(str string) {
@@ -382,4 +385,229 @@ func (s *StrongString) UnlockSpecial() {
 			s._value = append(s._value, c)
 		}
 	}
+}
+
+//---------------------------------------------------------
+
+func (l *ListW[T]) Find(element T) int {
+	for i, v := range l._values {
+		if v == element {
+			return i
+		}
+	}
+
+	return LIST_INDEX_NOTFOUND
+}
+
+func (l *ListW[T]) Count(element T) int {
+	count := 0
+	for _, v := range l._values {
+		if v == element {
+			count++
+		}
+	}
+
+	return count
+}
+
+func (l *ListW[T]) Counts(element ...T) int {
+	count := 0
+	for _, v := range l._values {
+		for _, current := range element {
+			if v == current {
+				count++
+			}
+		}
+	}
+
+	return count
+}
+
+func (l *ListW[T]) Contains(element T) bool {
+	return l.Find(element) != LIST_INDEX_NOTFOUND
+}
+
+func (l *ListW[T]) ContainsAll(elements ...T) bool {
+	for _, current := range elements {
+		if !l.Contains(current) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (l *ListW[T]) ContainsOne(elements ...T) bool {
+	for _, current := range elements {
+		if l.Contains(current) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (l *ListW[T]) Change(index int, element T) {
+	if index < 0 || index >= len(l._values) {
+		return
+	}
+
+	l._values[index] = element
+}
+
+func (l *ListW[T]) Exists(element T) bool {
+	return l.Find(element) != LIST_INDEX_NOTFOUND
+}
+
+func (l *ListW[T]) Append(elements ...T) {
+	l._values = append(l._values, elements...)
+}
+
+func (l *ListW[T]) Add(elements ...T) {
+	l._values = append(l._values, elements...)
+}
+
+func (l *ListW[T]) RemoveAt(index int) {
+	l._values = append(l._values[:index], l._values[index+1:]...)
+}
+
+func (l *ListW[T]) RemoveOnce(element T) {
+	index := l.Find(element)
+	if index != LIST_INDEX_NOTFOUND {
+		l.RemoveAt(index)
+	}
+}
+
+func (l *ListW[T]) RemoveAll(element ...T) {
+	var newVal []T
+	for _, current := range element {
+		for _, v := range l._values {
+			if v != current {
+				newVal = append(newVal, v)
+			}
+		}
+	}
+
+	l._values = newVal
+}
+
+func (l *ListW[T]) Remove(element T) {
+	l.RemoveOnce(element)
+}
+
+func (l *ListW[T]) AsArray() []T {
+	var arr = make([]T, len(l._values))
+	copy(arr, l._values)
+	return arr
+}
+
+func (l *ListW[T]) Clear() {
+	l._values = nil
+}
+
+func (l *ListW[T]) Get(index int) T {
+	return l._values[index]
+}
+
+func (l *ListW[T]) IsThreadSafe() bool {
+	return true
+}
+
+func (l *ListW[T]) IsEmpty() bool {
+	return len(l._values) == 0
+}
+
+func (l *ListW[T]) Length() int {
+	return len(l._values)
+}
+
+func (l *ListW[T]) IsValid() bool {
+	return len(l._values) > 0
+}
+
+//---------------------------------------------------------
+
+func (s *SafeMap[TKey, TValue]) lock() {
+	if s.isLocked {
+		return
+	}
+
+	if s.mut == nil {
+		s.mut = &sync.Mutex{}
+		s.values = make(map[TKey]*TValue)
+	}
+
+	s.isLocked = true
+	s.mut.Lock()
+}
+func (s *SafeMap[TKey, TValue]) unlock() {
+	if !s.isLocked {
+		return
+	}
+
+	if s.mut == nil {
+		s.mut = &sync.Mutex{}
+	}
+
+	s.isLocked = false
+	s.mut.Unlock()
+}
+
+func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
+	s.lock()
+	b := len(s.values) != 0 && s.values[key] != nil
+	s.unlock()
+	return b
+}
+
+func (s *SafeMap[TKey, TValue]) Add(key TKey, value *TValue) {
+	s.lock()
+	s.values[key] = value
+	s.unlock()
+}
+
+func (s *SafeMap[TKey, TValue]) Delete(key TKey) {
+	s.lock()
+	delete(s.values, key)
+	s.unlock()
+}
+
+func (s *SafeMap[TKey, TValue]) Get(key TKey) *TValue {
+	s.lock()
+	value := s.values[key]
+	s.unlock()
+	return value
+}
+
+func (s *SafeMap[TKey, TValue]) GetValue(key TKey) TValue {
+	s.lock()
+	value := s.values[key]
+	s.unlock()
+
+	if value == nil {
+		return s._default
+	}
+
+	return *value
+}
+
+func (s *SafeMap[TKey, TValue]) SetDefault(value TValue) {
+	s._default = value
+}
+
+// Set function sets the key of type TKey in this safe map to the value.
+// the value should be of type TValue or *TValue, otherwise this function won't
+// do anything at all.
+func (s *SafeMap[TKey, TValue]) Set(key TKey, value any) {
+	correctValue, ok := value.(*TValue)
+	if !ok {
+		anotherValue, ok := value.(TValue)
+		if !ok {
+			return
+		}
+
+		correctValue = &anotherValue
+	}
+
+	s.Add(key, correctValue)
 }

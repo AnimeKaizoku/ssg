@@ -5,11 +5,53 @@
 
 package strongStringGo
 
-import "hash"
+import (
+	"hash"
+	"sync"
+)
 
 // the StrongString used in the program for additional usage.
 type StrongString struct {
 	_value []rune
+}
+
+type ListW[T comparable] struct {
+	_values []T
+}
+
+// SafeMap is a safe map of type TIndex to pointers of type TValue.
+// this map is completely thread safe and is using internal lock when
+// getting and setting variables.
+type SafeMap[TKey comparable, TValue any] struct {
+	isLocked bool
+	mut      *sync.Mutex
+	values   map[TKey]*TValue
+	_default TValue
+}
+
+type safeList[T any] SafeMap[int, T]
+
+type GenericList[T comparable] interface {
+	BasicObject
+	Validator
+
+	Find(element T) int
+	Count(element T) int
+	Counts(element ...T) int
+	Contains(element T) bool
+	ContainsAll(elements ...T) bool
+	ContainsOne(elements ...T) bool
+	Change(index int, element T)
+	Exists(element T) bool
+	Append(elements ...T)
+	Add(elements ...T)
+	RemoveAt(index int)
+	RemoveOnce(element T)
+	RemoveAll(element ...T)
+	Remove(element T)
+	AsArray() []T
+	Clear()
+	Get(index int) T
 }
 
 type BytesObject interface {
@@ -28,9 +70,14 @@ type BitsBlocks interface {
 	GetBitsSize() int
 }
 
-type QString interface {
-	Length() int
+type BasicObject interface {
 	IsEmpty() bool
+	Length() int
+}
+
+type QString interface {
+	BasicObject
+
 	GetValue() string
 	GetIndexV(int) rune
 	IsEqual(QString) bool

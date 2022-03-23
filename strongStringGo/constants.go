@@ -121,3 +121,7 @@ const (
 	BACK_EQUALITY = "\\="
 	BACK_DDOT     = "\\:"
 )
+
+const (
+	LIST_INDEX_NOTFOUND = -1
+)

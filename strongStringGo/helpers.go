@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/ALiwoto/StrongStringGo/strongStringGo/strongParser"
@@ -260,6 +261,21 @@ func ToInt8(value string) int8 {
 
 func IsMixedCase(value string) bool {
 	return strings.ToLower(value) != value && strings.ToUpper(value) != value
+}
+
+func GetEmptyList[T comparable]() GenericList[T] {
+	return &ListW[T]{}
+}
+
+func GetListFromArray[T comparable](array []T) GenericList[T] {
+	return &ListW[T]{array}
+}
+
+func GetEmptySafeMap[TKey comparable, TValue any]() *SafeMap[TKey, TValue] {
+	return &SafeMap[TKey, TValue]{
+		mut:    &sync.Mutex{},
+		values: make(map[TKey]*TValue),
+	}
 }
 
 func IsAllLower(value string) bool {
