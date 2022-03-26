@@ -883,6 +883,11 @@ func (s *SafeEMap[TKey, TValue]) checkLoop() {
 		}
 
 		if !s.IsValid() {
+			if s.values != nil && s.Length() == 0 {
+				// don't break out if the map is actually valid but it's empty...
+				continue
+			}
+
 			s.checkingEnabled = false
 			return
 		}
