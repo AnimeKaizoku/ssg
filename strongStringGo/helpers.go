@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"unicode"
 
 	"github.com/ALiwoto/StrongStringGo/strongStringGo/strongParser"
@@ -271,10 +272,24 @@ func GetListFromArray[T comparable](array []T) GenericList[T] {
 	return &ListW[T]{array}
 }
 
-func GetEmptySafeMap[TKey comparable, TValue any]() *SafeMap[TKey, TValue] {
+func NewEValue[T any](value T) *ExpiringValue[T] {
+	return &ExpiringValue[T]{
+		_value: value,
+		_t:     time.Now(),
+	}
+}
+
+func NewSafeMap[TKey comparable, TValue any]() *SafeMap[TKey, TValue] {
 	return &SafeMap[TKey, TValue]{
 		mut:    &sync.Mutex{},
 		values: make(map[TKey]*TValue),
+	}
+}
+
+func NewSafeEMap[TKey comparable, TValue any]() *SafeEMap[TKey, TValue] {
+	return &SafeEMap[TKey, TValue]{
+		mut:    &sync.Mutex{},
+		values: make(map[TKey]*ExpiringValue[*TValue]),
 	}
 }
 

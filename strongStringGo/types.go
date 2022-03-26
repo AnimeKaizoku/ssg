@@ -8,7 +8,13 @@ package strongStringGo
 import (
 	"hash"
 	"sync"
+	"time"
 )
+
+type ExpiringValue[T any] struct {
+	_value T
+	_t     time.Time
+}
 
 // the StrongString used in the program for additional usage.
 type StrongString struct {
@@ -27,6 +33,26 @@ type SafeMap[TKey comparable, TValue any] struct {
 	mut      *sync.Mutex
 	values   map[TKey]*TValue
 	_default TValue
+}
+
+// SafeEMap is a safe map of type TIndex to pointers of type TValue.
+// this map is completely thread safe and is using internal lock when
+// getting and setting variables.
+// the difference of SafeEMap and SafeMap is that SafeEMap is using a checker loop
+// for removing the expired values from itself.
+type SafeEMap[TKey comparable, TValue any] struct {
+	isLocked        bool
+	checkingEnabled bool
+	checkInterval   time.Duration
+	expiration      time.Duration
+	mut             *sync.Mutex
+	checkerMut      *sync.Mutex
+	values          map[TKey]*ExpiringValue[*TValue]
+	_default        TValue
+
+	// onExpired is the event function that will be called when a value with the certain
+	// key on the map is expired. this event function will be called in a new goroutine.
+	onExpired func(key TKey, value TValue)
 }
 
 type safeList[T any] SafeMap[int, T]

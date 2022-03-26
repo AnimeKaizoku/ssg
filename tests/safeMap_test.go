@@ -21,9 +21,9 @@ var defaultDummy dummyStructType[TopString] = dummyStructType[TopString]{
 }
 
 func TestSafeMap01(t *testing.T) {
-	m1 := strongStringGo.GetEmptySafeMap[int, string]()
-	m2 := strongStringGo.GetEmptySafeMap[string, string]()
-	m3 := strongStringGo.GetEmptySafeMap[string, dummyStructType[TopString]]()
+	m1 := strongStringGo.NewSafeMap[int, string]()
+	m2 := strongStringGo.NewSafeMap[string, string]()
+	m3 := strongStringGo.NewSafeMap[string, dummyStructType[TopString]]()
 
 	m1.Set(1, "1")
 	m2.Set("1", "1")

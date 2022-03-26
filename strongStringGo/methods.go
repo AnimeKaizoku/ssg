@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 )
 
 //---------------------------------------------------------
@@ -667,4 +668,252 @@ func (s *SafeMap[TKey, TValue]) IsThreadSafe() bool {
 
 func (s *SafeMap[TKey, TValue]) IsValid() bool {
 	return s.Length() > 0
+}
+
+//---------------------------------------------------------
+
+func (s *SafeEMap[TKey, TValue]) lock() {
+	if s.isLocked {
+		return
+	}
+
+	if s.mut == nil {
+		s.mut = &sync.Mutex{}
+		s.values = make(map[TKey]*ExpiringValue[*TValue])
+	}
+
+	s.isLocked = true
+	s.mut.Lock()
+}
+func (s *SafeEMap[TKey, TValue]) unlock() {
+	if !s.isLocked {
+		return
+	}
+
+	if s.mut == nil {
+		s.mut = &sync.Mutex{}
+	}
+
+	s.isLocked = false
+	s.mut.Unlock()
+}
+
+func (s *SafeEMap[TKey, TValue]) Exists(key TKey) bool {
+	s.lock()
+	b := len(s.values) != 0 && s.values[key] != nil
+	s.unlock()
+	return b
+}
+
+func (s *SafeEMap[TKey, TValue]) Add(key TKey, value *TValue) {
+	s.lock()
+	old := s.values[key]
+	if old != nil {
+		// don't allocate new memory if we already have the expiring-value struct in
+		// the map... just set the new value and reset the time
+		old.SetValue(value)
+		old.Reset()
+	} else {
+		s.values[key] = NewEValue(value)
+	}
+	s.unlock()
+}
+
+func (s *SafeEMap[TKey, TValue]) Delete(key TKey) {
+	s.lock()
+	delete(s.values, key)
+	s.unlock()
+}
+
+func (s *SafeEMap[TKey, TValue]) Get(key TKey) *TValue {
+	s.lock()
+	value := s.values[key]
+	s.unlock()
+	if value == nil {
+		return nil
+	}
+
+	return value.GetValue()
+}
+
+func (s *SafeEMap[TKey, TValue]) GetValue(key TKey) TValue {
+	s.lock()
+	value := s.values[key]
+	s.unlock()
+
+	return s.getRealValue(value)
+}
+
+func (s *SafeEMap[TKey, TValue]) SetDefault(value TValue) {
+	s._default = value
+}
+
+// Set function sets the key of type TKey in this safe map to the value.
+// the value should be of type TValue or *TValue, otherwise this function won't
+// do anything at all.
+func (s *SafeEMap[TKey, TValue]) Set(key TKey, value any) {
+	correctValue, ok := value.(*TValue)
+	if !ok {
+		anotherValue, ok := value.(TValue)
+		if !ok {
+			return
+		}
+
+		correctValue = &anotherValue
+	}
+
+	s.Add(key, correctValue)
+}
+
+// Clear will clear the whole map.
+func (s *SafeEMap[TKey, TValue]) Clear() {
+	s.lock()
+	if len(s.values) != 0 {
+		s.values = make(map[TKey]*ExpiringValue[*TValue])
+	}
+	s.unlock()
+}
+
+func (s *SafeEMap[TKey, TValue]) Length() int {
+	s.lock()
+	l := len(s.values)
+	s.unlock()
+
+	return l
+}
+
+func (s *SafeEMap[TKey, TValue]) IsEmpty() bool {
+	return s.Length() == 0
+}
+
+func (s *SafeEMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
+	m := make(map[TKey]TValue)
+	s.lock()
+	for k, v := range s.values {
+		if v == nil {
+			m[k] = s._default
+			continue
+		}
+
+		realValue := v.GetValue()
+		if realValue == nil {
+			m[k] = s._default
+			continue
+		}
+
+		m[k] = *realValue
+	}
+	s.unlock()
+
+	return m
+}
+
+func (s *SafeEMap[TKey, TValue]) IsThreadSafe() bool {
+	return true
+}
+
+func (s *SafeEMap[TKey, TValue]) IsValid() bool {
+	return s.Length() > 0 && s.values != nil && s.HasValidTimings()
+}
+
+func (s *SafeEMap[TKey, TValue]) HasValidTimings() bool {
+	return s.expiration > time.Microsecond && s.checkInterval > time.Second
+}
+
+func (s *SafeEMap[TKey, TValue]) EnableChecking() {
+	if s.checkerMut == nil {
+		s.checkerMut = &sync.Mutex{}
+	}
+
+	// this lock here makes sure that only 1 checkLoop is running at a time.
+	s.checkerMut.Lock()
+	defer s.checkerMut.Unlock()
+
+	if s.checkingEnabled {
+		return
+	}
+
+	s.checkingEnabled = true
+	go s.checkLoop()
+}
+
+func (s *SafeEMap[TKey, TValue]) DisableChecking() {
+	if !s.checkingEnabled {
+		return
+	}
+
+	s.checkingEnabled = false
+}
+
+func (s *SafeEMap[TKey, TValue]) IsChecking() bool {
+	return s.checkingEnabled
+}
+
+func (s *SafeEMap[TKey, TValue]) SetExpiration(duration time.Duration) {
+	s.expiration = duration
+}
+
+func (s *SafeEMap[TKey, TValue]) getRealValue(eValue *ExpiringValue[*TValue]) TValue {
+	if eValue == nil {
+		return s._default
+	}
+
+	realValue := eValue.GetValue()
+	if realValue == nil {
+		return s._default
+	}
+
+	return *realValue
+}
+
+func (s *SafeEMap[TKey, TValue]) checkLoop() {
+	for {
+		time.Sleep(s.checkInterval)
+
+		if !s.checkingEnabled {
+			return
+		}
+
+		if !s.IsValid() {
+			s.checkingEnabled = false
+			return
+		}
+
+		s.lock()
+		for i, current := range s.values {
+			if current == nil || current.IsExpired(s.expiration) {
+				delete(s.values, i)
+				if s.onExpired != nil {
+					go s.onExpired(i, s.getRealValue(current))
+				}
+			}
+		}
+		s.unlock()
+	}
+}
+
+//---------------------------------------------------------
+
+func (e *ExpiringValue[T]) SetTime(t time.Time) {
+	e._t = t
+}
+
+func (e *ExpiringValue[T]) GetTime() time.Time {
+	return e._t
+}
+
+func (e *ExpiringValue[T]) Reset() {
+	e.SetTime(time.Now())
+}
+
+func (e *ExpiringValue[T]) IsExpired(duration time.Duration) bool {
+	return time.Since(e._t) > duration
+}
+
+func (e *ExpiringValue[T]) SetValue(value T) {
+	e._value = value
+}
+
+func (e *ExpiringValue[T]) GetValue() T {
+	return e._value
 }
