@@ -853,6 +853,10 @@ func (s *SafeEMap[TKey, TValue]) SetExpiration(duration time.Duration) {
 	s.expiration = duration
 }
 
+func (s *SafeEMap[TKey, TValue]) SetOnExpired(event func(key TKey, value TValue)) {
+	s.onExpired = event
+}
+
 func (s *SafeEMap[TKey, TValue]) SetInterval(duration time.Duration) {
 	s.checkInterval = duration
 }
