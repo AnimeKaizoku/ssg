@@ -853,6 +853,10 @@ func (s *SafeEMap[TKey, TValue]) SetExpiration(duration time.Duration) {
 	s.expiration = duration
 }
 
+func (s *SafeEMap[TKey, TValue]) SetInterval(duration time.Duration) {
+	s.checkInterval = duration
+}
+
 func (s *SafeEMap[TKey, TValue]) getRealValue(eValue *ExpiringValue[*TValue]) TValue {
 	if eValue == nil {
 		return s._default
