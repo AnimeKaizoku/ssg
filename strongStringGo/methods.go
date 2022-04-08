@@ -541,29 +541,16 @@ func (l *ListW[T]) IsValid() bool {
 //---------------------------------------------------------
 
 func (s *SafeMap[TKey, TValue]) lock() {
-	if s.isLocked {
-		return
-	}
-
-	if s.mut == nil {
-		s.mut = &sync.Mutex{}
-		s.values = make(map[TKey]*TValue)
-	}
-
-	s.isLocked = true
 	s.mut.Lock()
+	s.isLocked = true
 }
 func (s *SafeMap[TKey, TValue]) unlock() {
 	if !s.isLocked {
 		return
 	}
 
-	if s.mut == nil {
-		s.mut = &sync.Mutex{}
-	}
-
-	s.isLocked = false
 	s.mut.Unlock()
+	s.isLocked = false
 }
 
 func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
@@ -673,29 +660,16 @@ func (s *SafeMap[TKey, TValue]) IsValid() bool {
 //---------------------------------------------------------
 
 func (s *SafeEMap[TKey, TValue]) lock() {
-	if s.isLocked {
-		return
-	}
-
-	if s.mut == nil {
-		s.mut = &sync.Mutex{}
-		s.values = make(map[TKey]*ExpiringValue[*TValue])
-	}
-
-	s.isLocked = true
 	s.mut.Lock()
+	s.isLocked = true
 }
 func (s *SafeEMap[TKey, TValue]) unlock() {
 	if !s.isLocked {
 		return
 	}
 
-	if s.mut == nil {
-		s.mut = &sync.Mutex{}
-	}
-
-	s.isLocked = false
 	s.mut.Unlock()
+	s.isLocked = false
 }
 
 func (s *SafeEMap[TKey, TValue]) Exists(key TKey) bool {
@@ -872,6 +846,25 @@ func (s *SafeEMap[TKey, TValue]) getRealValue(eValue *ExpiringValue[*TValue]) TV
 	}
 
 	return *realValue
+}
+
+// DoCheck iterates over the map and checks for expired variables and removes them.
+// if the `onExpired` member of the map is set, it will call them.
+func (s *SafeEMap[TKey, TValue]) DoCheck() {
+	if !s.IsValid() {
+		return
+	}
+
+	s.lock()
+	for i, current := range s.values {
+		if current == nil || current.IsExpired(s.expiration) {
+			delete(s.values, i)
+			if s.onExpired != nil {
+				go s.onExpired(i, s.getRealValue(current))
+			}
+		}
+	}
+	s.unlock()
 }
 
 func (s *SafeEMap[TKey, TValue]) checkLoop() {
