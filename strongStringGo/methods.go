@@ -542,15 +542,9 @@ func (l *ListW[T]) IsValid() bool {
 
 func (s *SafeMap[TKey, TValue]) lock() {
 	s.mut.Lock()
-	s.isLocked = true
 }
 func (s *SafeMap[TKey, TValue]) unlock() {
-	if !s.isLocked {
-		return
-	}
-
 	s.mut.Unlock()
-	s.isLocked = false
 }
 
 func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
@@ -661,15 +655,9 @@ func (s *SafeMap[TKey, TValue]) IsValid() bool {
 
 func (s *SafeEMap[TKey, TValue]) lock() {
 	s.mut.Lock()
-	s.isLocked = true
 }
 func (s *SafeEMap[TKey, TValue]) unlock() {
-	if !s.isLocked {
-		return
-	}
-
 	s.mut.Unlock()
-	s.isLocked = false
 }
 
 func (s *SafeEMap[TKey, TValue]) Exists(key TKey) bool {

@@ -29,7 +29,6 @@ type ListW[T comparable] struct {
 // this map is completely thread safe and is using internal lock when
 // getting and setting variables.
 type SafeMap[TKey comparable, TValue any] struct {
-	isLocked bool
 	mut      *sync.Mutex
 	values   map[TKey]*TValue
 	_default TValue
@@ -41,7 +40,6 @@ type SafeMap[TKey comparable, TValue any] struct {
 // the difference of SafeEMap and SafeMap is that SafeEMap is using a checker loop
 // for removing the expired values from itself.
 type SafeEMap[TKey comparable, TValue any] struct {
-	isLocked        bool
 	checkingEnabled bool
 	checkInterval   time.Duration
 	expiration      time.Duration
