@@ -240,6 +240,10 @@ func ToValidIntegerString(value string) string {
 	return newValue
 }
 
+func Title(value string) string {
+	return _titleCaser.String(value)
+}
+
 func ToInt64(value string) int64 {
 	i, _ := strconv.ParseInt(ToValidIntegerString(value), 10, 64)
 	return i

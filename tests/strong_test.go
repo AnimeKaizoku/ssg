@@ -13,6 +13,32 @@ import (
 	ws "github.com/AnimeKaizoku/ssg/ssg"
 )
 
+func TestTitleCase(t *testing.T) {
+	const (
+		str1 = "string1"
+		str2 = "thisIsString2"
+		str3 = "HelloThere"
+	)
+
+	tmp := ws.Title(str1)
+	if tmp != "String1" {
+		t.Errorf("Expected %s, got %s", "String1", tmp)
+		return
+	}
+
+	tmp = ws.Title(str2)
+	if tmp != "ThisIsString2" {
+		t.Errorf("Expected %s, got %s", "ThisIsString2", tmp)
+		return
+	}
+
+	tmp = ws.Title(str3)
+	if tmp != "HelloThere" {
+		t.Errorf("Expected %s, got %s", "HelloThere", tmp)
+		return
+	}
+}
+
 func TestStrong(t *testing.T) {
 	LogStr("Hi")
 	LogInt(5)
