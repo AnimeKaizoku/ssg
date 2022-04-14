@@ -3,11 +3,11 @@ package tests
 import (
 	"testing"
 
-	"github.com/ALiwoto/StrongStringGo/strongStringGo"
+	"github.com/AnimeKaizoku/ssg/ssg"
 )
 
 func TestList01(t *testing.T) {
-	l1 := strongStringGo.GetEmptyList[string]()
+	l1 := ssg.GetEmptyList[string]()
 	l1.Add("1", "2", "3", "4")
 	arr := l1.AsArray()
 	if len(arr) != 4 {

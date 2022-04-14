@@ -1,9 +1,9 @@
-// StrongStringGo Project
+// ssg Project
 // Copyright (C) 2021 ALiwoto
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE', which is part of the source code.
 
-package strongStringGo
+package ssg
 
 // the prefix values for commands.
 const (
@@ -14,7 +14,6 @@ const (
 )
 
 const (
-	JA_Flag       = "〰\u200d；〰"
 	JA_Str        = "❞\u200d；" // start character (") for string in japanese.
 	JA_Equality   = "＝\u200d；" // equal character (＝) in japanese.
 	JA_Ddot       = "：\u200d；" // ddot character (:) in japanese.

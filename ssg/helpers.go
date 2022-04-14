@@ -1,9 +1,9 @@
-// StrongStringGo Project
+// ssg Project
 // Copyright (C) 2021 ALiwoto
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE', which is part of the source code.
 
-package strongStringGo
+package ssg
 
 import (
 	"regexp"
@@ -13,7 +13,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/ALiwoto/StrongStringGo/strongStringGo/strongParser"
+	"github.com/AnimeKaizoku/ssg/ssg/strongParser"
 )
 
 // Ss will generate a new StrongString

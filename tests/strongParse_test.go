@@ -4,7 +4,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/ALiwoto/StrongStringGo/strongStringGo/strongParser"
+	"github.com/AnimeKaizoku/ssg/ssg/strongParser"
 )
 
 type MyConfigStruct struct {

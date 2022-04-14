@@ -1,4 +1,4 @@
-// StrongStringGo Project
+// ssg Project
 // Copyright (C) 2021 ALiwoto
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE', which is part of the source code.
@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	ws "github.com/ALiwoto/StrongStringGo/strongStringGo"
+	ws "github.com/AnimeKaizoku/ssg/ssg"
 )
 
 func TestStrong(t *testing.T) {

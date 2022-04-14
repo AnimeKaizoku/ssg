@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ALiwoto/StrongStringGo/strongStringGo"
+	"github.com/AnimeKaizoku/ssg/ssg"
 )
 
 type TopString string
@@ -21,9 +21,9 @@ var defaultDummy dummyStructType[TopString] = dummyStructType[TopString]{
 }
 
 func TestSafeMap01(t *testing.T) {
-	m1 := strongStringGo.NewSafeMap[int, string]()
-	m2 := strongStringGo.NewSafeMap[string, string]()
-	m3 := strongStringGo.NewSafeMap[string, dummyStructType[TopString]]()
+	m1 := ssg.NewSafeMap[int, string]()
+	m2 := ssg.NewSafeMap[string, string]()
+	m3 := ssg.NewSafeMap[string, dummyStructType[TopString]]()
 
 	m1.Set(1, "1")
 	m2.Set("1", "1")
