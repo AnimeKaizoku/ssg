@@ -7,6 +7,7 @@ package ssg
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1053,3 +1054,11 @@ func (e *ExpiringValue[T]) SetValue(value T) {
 func (e *ExpiringValue[T]) GetValue() T {
 	return e._value
 }
+
+//---------------------------------------------------------
+
+func (e *EndpointError) Error() string {
+	return strconv.Itoa(e.ErrorCode) + ": " + e.Message
+}
+
+//---------------------------------------------------------
