@@ -136,7 +136,7 @@ func FixSplit(myStrings []string) []string {
 	final := make([]string, BaseIndex, cap(myStrings))
 
 	for _, current := range myStrings {
-		if !IsEmpty(&current) {
+		if current != "" {
 			final = append(final, current)
 		}
 	}

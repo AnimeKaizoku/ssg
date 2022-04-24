@@ -560,6 +560,74 @@ func (s *SafeMap[TKey, TValue]) Add(key TKey, value *TValue) {
 	s.unlock()
 }
 
+func (s *SafeMap[TKey, TValue]) ToArray() []TValue {
+	var array []TValue
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			array = append(array, s._default)
+			continue
+		}
+
+		array = append(array, *v)
+	}
+	s.unlock()
+
+	return array
+}
+
+func (s *SafeMap[TKey, TValue]) ToPointerArray() []*TValue {
+	var array []*TValue
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			// most likely impossible, this checker is here just for more safety.
+			continue
+		}
+
+		array = append(array, v)
+	}
+	s.unlock()
+
+	return array
+}
+
+func (s *SafeMap[TKey, TValue]) ToList() GenericList[*TValue] {
+	list := GetEmptyList[*TValue]()
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			// most likely impossible, this checker is here just for more safety.
+			continue
+		}
+
+		list.Add(v)
+	}
+	s.unlock()
+
+	return list
+}
+
+func (s *SafeMap[TKey, TValue]) AddList(keyGetter func(*TValue) TKey, elements ...TValue) {
+	if len(elements) == 0 || keyGetter == nil {
+		return
+	}
+
+	for _, current := range elements {
+		s.Add(keyGetter(&current), &current)
+	}
+}
+
+func (s *SafeMap[TKey, TValue]) AddPointerList(keyGetter func(*TValue) TKey, elements ...*TValue) {
+	if len(elements) == 0 || keyGetter == nil {
+		return
+	}
+
+	for _, current := range elements {
+		s.Add(keyGetter(current), current)
+	}
+}
+
 func (s *SafeMap[TKey, TValue]) Delete(key TKey) {
 	s.lock()
 	delete(s.values, key)
@@ -667,6 +735,42 @@ func (s *SafeEMap[TKey, TValue]) Exists(key TKey) bool {
 	return b
 }
 
+func (s *SafeEMap[TKey, TValue]) AddList(keyGetter func(*TValue) TKey, elements ...TValue) {
+	if len(elements) == 0 || keyGetter == nil {
+		return
+	}
+
+	for _, current := range elements {
+		s.Add(keyGetter(&current), &current)
+	}
+}
+
+func (s *SafeEMap[TKey, TValue]) ToList() GenericList[*TValue] {
+	list := GetEmptyList[*TValue]()
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			// most likely impossible, this checker is here just for more safety.
+			continue
+		}
+
+		list.Add(v.GetValue())
+	}
+	s.unlock()
+
+	return list
+}
+
+func (s *SafeEMap[TKey, TValue]) AddPointerList(keyGetter func(*TValue) TKey, elements ...*TValue) {
+	if len(elements) == 0 || keyGetter == nil {
+		return
+	}
+
+	for _, current := range elements {
+		s.Add(keyGetter(current), current)
+	}
+}
+
 func (s *SafeEMap[TKey, TValue]) Add(key TKey, value *TValue) {
 	s.lock()
 	old := s.values[key]
@@ -768,6 +872,44 @@ func (s *SafeEMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
 	s.unlock()
 
 	return m
+}
+
+func (s *SafeEMap[TKey, TValue]) ToArray() []TValue {
+	var array []TValue
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			array = append(array, s._default)
+			continue
+		}
+
+		realValue := v.GetValue()
+		if realValue == nil {
+			array = append(array, s._default)
+			continue
+		}
+
+		array = append(array, *realValue)
+	}
+	s.unlock()
+
+	return array
+}
+
+func (s *SafeEMap[TKey, TValue]) ToPointerArray() []*TValue {
+	var array []*TValue
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			// most likely impossible, this checker is here just for more safety.
+			continue
+		}
+
+		array = append(array, v._value)
+	}
+	s.unlock()
+
+	return array
 }
 
 func (s *SafeEMap[TKey, TValue]) IsThreadSafe() bool {
