@@ -6,6 +6,7 @@
 package ssg
 
 import (
+	"math/rand"
 	"reflect"
 	"strconv"
 	"strings"
@@ -557,8 +558,63 @@ func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
 
 func (s *SafeMap[TKey, TValue]) Add(key TKey, value *TValue) {
 	s.lock()
+	_, exists := s.values[key]
 	s.values[key] = value
+	if exists {
+		s.unlock()
+		return
+	}
+
+	s.keys = append(s.keys, key)
+
+	// store the index of the map key
+	index := len(s.keys) - 1
+	s.sliceKeyIndex[key] = index
 	s.unlock()
+}
+func (s *SafeMap[TKey, TValue]) GetRandom() *TValue {
+	if s.IsEmpty() {
+		return nil
+	}
+
+	s.lock()
+	randomIndex := rand.Intn(len(s.keys))
+	key := s.keys[randomIndex]
+	value := s.values[key]
+	s.unlock()
+
+	return value
+}
+
+func (s *SafeMap[TKey, TValue]) GetRandomValue() TValue {
+	if s.IsEmpty() {
+		return s._default
+	}
+
+	s.lock()
+	randomIndex := rand.Intn(len(s.keys))
+	key := s.keys[randomIndex]
+	value := s.values[key]
+	s.unlock()
+
+	if value == nil {
+		return s._default
+	}
+
+	return *value
+}
+
+func (s *SafeMap[TKey, TValue]) GetRandomKey() (key TKey, ok bool) {
+	if s.IsEmpty() {
+		return
+	}
+	ok = true
+
+	s.lock()
+	key = s.keys[rand.Intn(len(s.keys))]
+	s.unlock()
+
+	return
 }
 
 func (s *SafeMap[TKey, TValue]) ToArray() []TValue {
@@ -631,6 +687,29 @@ func (s *SafeMap[TKey, TValue]) AddPointerList(keyGetter func(*TValue) TKey, ele
 
 func (s *SafeMap[TKey, TValue]) Delete(key TKey) {
 	s.lock()
+	// get index in key slice for key
+	index, exists := s.sliceKeyIndex[key]
+	if !exists {
+		s.unlock()
+		// item does not exist
+		return
+	}
+
+	delete(s.sliceKeyIndex, key)
+
+	wasLastIndex := len(s.keys)-1 == index
+
+	// remove key from slice of keys
+	s.keys[index] = s.keys[len(s.keys)-1]
+	s.keys = s.keys[:len(s.keys)-1]
+
+	// we just swapped the last element to another position.
+	// so we need to update it's index (if it was not in last position)
+	if !wasLastIndex {
+		otherKey := s.keys[index]
+		s.sliceKeyIndex[otherKey] = index
+	}
+
 	delete(s.values, key)
 	s.unlock()
 }
@@ -780,16 +859,88 @@ func (s *SafeEMap[TKey, TValue]) Add(key TKey, value *TValue) {
 		// the map... just set the new value and reset the time
 		old.SetValue(value)
 		old.Reset()
+		s.unlock()
+		return
 	} else {
 		s.values[key] = NewEValue(value)
 	}
+
+	s.keys = append(s.keys, key)
+
+	// store the index of the map key
+	index := len(s.keys) - 1
+	s.sliceKeyIndex[key] = index
 	s.unlock()
 }
 
 func (s *SafeEMap[TKey, TValue]) Delete(key TKey) {
 	s.lock()
+	// get index in key slice for key
+	index, exists := s.sliceKeyIndex[key]
+	if !exists {
+		s.unlock()
+		// item does not exist
+		return
+	}
+
+	delete(s.sliceKeyIndex, key)
+
+	wasLastIndex := len(s.keys)-1 == index
+
+	// remove key from slice of keys
+	s.keys[index] = s.keys[len(s.keys)-1]
+	s.keys = s.keys[:len(s.keys)-1]
+
+	// we just swapped the last element to another position.
+	// so we need to update it's index (if it was not in last position)
+	if !wasLastIndex {
+		otherKey := s.keys[index]
+		s.sliceKeyIndex[otherKey] = index
+	}
+
 	delete(s.values, key)
 	s.unlock()
+}
+
+func (s *SafeEMap[TKey, TValue]) GetRandom() *TValue {
+	if s.IsEmpty() {
+		return nil
+	}
+
+	s.lock()
+	randomIndex := rand.Intn(len(s.keys))
+	key := s.keys[randomIndex]
+	value := s.values[key]
+	s.unlock()
+
+	return value.GetValue()
+}
+
+func (s *SafeEMap[TKey, TValue]) GetRandomValue() TValue {
+	if s.IsEmpty() {
+		return s._default
+	}
+
+	s.lock()
+	randomIndex := rand.Intn(len(s.keys))
+	key := s.keys[randomIndex]
+	value := s.values[key]
+	s.unlock()
+
+	return s.getRealValue(value)
+}
+
+func (s *SafeEMap[TKey, TValue]) GetRandomKey() (key TKey, ok bool) {
+	if s.IsEmpty() {
+		return
+	}
+	ok = true
+
+	s.lock()
+	key = s.keys[rand.Intn(len(s.keys))]
+	s.unlock()
+
+	return
 }
 
 func (s *SafeEMap[TKey, TValue]) Get(key TKey) *TValue {

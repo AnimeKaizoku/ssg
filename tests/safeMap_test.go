@@ -1,7 +1,11 @@
 package tests
 
 import (
+	"math/rand"
+	"strconv"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/AnimeKaizoku/ssg/ssg"
 )
@@ -101,6 +105,54 @@ func TestSafeMap01(t *testing.T) {
 	}
 
 	if t.Failed() {
+		return
+	}
+}
+
+func TestSafeMapRandom(t *testing.T) {
+	rand.Seed(time.Now().Unix())
+	m := ssg.NewSafeMap[string, string]()
+
+	var wg = new(sync.WaitGroup)
+
+	worker := func(valueChan chan string) {
+		for value := range valueChan {
+			m.Set("key"+value, "value"+value)
+			wg.Done()
+		}
+	}
+
+	myChan := make(chan string, 128)
+	for i := 0; i < cap(myChan); i++ {
+		go worker(myChan)
+	}
+
+	for i := 0; i < 10000; i++ {
+		wg.Add(1)
+		myChan <- strconv.Itoa(i)
+	}
+
+	wg.Wait()
+
+	m.Delete("1")
+	m.Delete("10")
+	m.Delete("key10")
+	m.Delete("key100")
+	m.Delete("key110")
+
+	var allValues []string
+	var randomValue string
+	for i := 0; i < 1000; i++ {
+		randomValue = m.GetRandomValue()
+		if randomValue == "" {
+			t.Error("Expected non-empty for randomValue, got:", randomValue)
+			return
+		}
+		allValues = append(allValues, randomValue)
+	}
+
+	if len(allValues) < 1000 {
+		t.Error("Expected at least 1000 values, got:", len(allValues))
 		return
 	}
 }

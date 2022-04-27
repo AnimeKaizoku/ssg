@@ -285,15 +285,17 @@ func NewEValue[T any](value T) *ExpiringValue[T] {
 
 func NewSafeMap[TKey comparable, TValue any]() *SafeMap[TKey, TValue] {
 	return &SafeMap[TKey, TValue]{
-		mut:    &sync.Mutex{},
-		values: make(map[TKey]*TValue),
+		mut:           &sync.Mutex{},
+		values:        make(map[TKey]*TValue),
+		sliceKeyIndex: make(map[TKey]int),
 	}
 }
 
 func NewSafeEMap[TKey comparable, TValue any]() *SafeEMap[TKey, TValue] {
 	return &SafeEMap[TKey, TValue]{
-		mut:    &sync.Mutex{},
-		values: make(map[TKey]*ExpiringValue[*TValue]),
+		mut:           &sync.Mutex{},
+		values:        make(map[TKey]*ExpiringValue[*TValue]),
+		sliceKeyIndex: make(map[TKey]int),
 	}
 }
 

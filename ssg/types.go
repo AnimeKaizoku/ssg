@@ -29,8 +29,16 @@ type ListW[T comparable] struct {
 // this map is completely thread safe and is using internal lock when
 // getting and setting variables.
 type SafeMap[TKey comparable, TValue any] struct {
-	mut      *sync.Mutex
-	values   map[TKey]*TValue
+	mut    *sync.Mutex
+	values map[TKey]*TValue
+	// keys field is a slice of the map keys used in the map above. We put them in a slice
+	// so that we can get a random key by choosing a random index.
+	keys []TKey
+	// We store the index of each key, so that when we remove an item, we can
+	// quickly remove it from the slice above.
+	sliceKeyIndex map[TKey]int
+	// _default field is the default value this map has to return in GetValue
+	// method when the key is not found.
 	_default TValue
 }
 
@@ -46,7 +54,13 @@ type SafeEMap[TKey comparable, TValue any] struct {
 	mut             *sync.Mutex
 	checkerMut      *sync.Mutex
 	values          map[TKey]*ExpiringValue[*TValue]
-	_default        TValue
+	// keys field is a slice of the map keys used in the map above. We put them in a slice
+	// so that we can get a random key by choosing a random index.
+	keys []TKey
+	// We store the index of each key, so that when we remove an item, we can
+	// quickly remove it from the slice above.
+	sliceKeyIndex map[TKey]int
+	_default      TValue
 
 	// onExpired is the event function that will be called when a value with the certain
 	// key on the map is expired. this event function will be called in a new goroutine.
