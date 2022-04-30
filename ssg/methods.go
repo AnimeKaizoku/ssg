@@ -586,6 +586,21 @@ func (s *SafeMap[TKey, TValue]) GetRandom() *TValue {
 	return value
 }
 
+func (s *SafeMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {
+	if fn == nil {
+		return
+	}
+	s.lock()
+
+	for key, value := range s.values {
+		if fn(key, value) {
+			s.delete(key, false)
+		}
+	}
+
+	s.unlock()
+}
+
 func (s *SafeMap[TKey, TValue]) GetRandomValue() TValue {
 	if s.IsEmpty() {
 		return s._default
@@ -685,12 +700,17 @@ func (s *SafeMap[TKey, TValue]) AddPointerList(keyGetter func(*TValue) TKey, ele
 	}
 }
 
-func (s *SafeMap[TKey, TValue]) Delete(key TKey) {
-	s.lock()
+func (s *SafeMap[TKey, TValue]) delete(key TKey, useLock bool) {
+	if useLock {
+		s.lock()
+	}
+
 	// get index in key slice for key
 	index, exists := s.sliceKeyIndex[key]
 	if !exists {
-		s.unlock()
+		if useLock {
+			s.unlock()
+		}
 		// item does not exist
 		return
 	}
@@ -711,7 +731,13 @@ func (s *SafeMap[TKey, TValue]) Delete(key TKey) {
 	}
 
 	delete(s.values, key)
-	s.unlock()
+	if useLock {
+		s.unlock()
+	}
+}
+
+func (s *SafeMap[TKey, TValue]) Delete(key TKey) {
+	s.delete(key, true)
 }
 
 func (s *SafeMap[TKey, TValue]) Get(key TKey) *TValue {
@@ -873,12 +899,16 @@ func (s *SafeEMap[TKey, TValue]) Add(key TKey, value *TValue) {
 	s.unlock()
 }
 
-func (s *SafeEMap[TKey, TValue]) Delete(key TKey) {
-	s.lock()
+func (s *SafeEMap[TKey, TValue]) delete(key TKey, useLock bool) {
+	if useLock {
+		s.lock()
+	}
 	// get index in key slice for key
 	index, exists := s.sliceKeyIndex[key]
 	if !exists {
-		s.unlock()
+		if useLock {
+			s.unlock()
+		}
 		// item does not exist
 		return
 	}
@@ -899,6 +929,35 @@ func (s *SafeEMap[TKey, TValue]) Delete(key TKey) {
 	}
 
 	delete(s.values, key)
+	if useLock {
+		s.unlock()
+	}
+}
+
+func (s *SafeEMap[TKey, TValue]) Delete(key TKey) {
+	s.delete(key, true)
+}
+
+func (s *SafeEMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {
+	if fn == nil {
+		return
+	}
+	s.lock()
+
+	var tmpValue *TValue
+
+	for key, value := range s.values {
+		if value == nil {
+			tmpValue = nil
+		} else {
+			tmpValue = value.GetValue()
+		}
+
+		if fn(key, tmpValue) {
+			s.delete(key, false)
+		}
+	}
+
 	s.unlock()
 }
 
