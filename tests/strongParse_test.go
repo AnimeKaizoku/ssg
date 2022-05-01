@@ -2,6 +2,7 @@ package tests
 
 import (
 	"log"
+	"os"
 	"testing"
 
 	"github.com/AnimeKaizoku/ssg/ssg/strongParser"
@@ -22,6 +23,7 @@ type MyConfigStruct struct {
 	OwnerSupporting []bool     `section:"telegram" key:"owner_supporting"`
 	DatabaseUrl     string     `section:"database" key:"url"`
 	UseSqlite       bool       `section:"database" key:"use_sqlite" default:"true"`
+	APIUrl          string     `key:"api_url"`
 }
 
 type MyRuneStruct struct {
@@ -62,6 +64,23 @@ func TestStrongParser(t *testing.T) {
 	}
 
 	log.Println(myValue)
+}
+
+func TestParseFromEnv(t *testing.T) {
+	myValue := &MyConfigStruct{}
+	os.Setenv("API_URL", "google.com")
+	err := strongParser.ParseStringConfigWithOption(myValue, TheStrValue, &strongParser.ConfigParserOptions{
+		ReadEnv: true,
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if myValue.APIUrl != "google.com" {
+		t.Errorf("APIUrl should be google.com, got: %s", myValue.APIUrl)
+		return
+	}
 }
 
 func TestStrongRuneParser(t *testing.T) {

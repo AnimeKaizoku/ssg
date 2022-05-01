@@ -27,8 +27,13 @@ type Config map[string]*Section
 type ConfigParser struct {
 	config   Config
 	defaults *Section
+	options  *ConfigParserOptions
 }
 
 type ChainMap struct {
 	maps []Dict
+}
+
+type ConfigParserOptions struct {
+	ReadEnv bool
 }

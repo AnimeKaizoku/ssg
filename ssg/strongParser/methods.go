@@ -92,6 +92,26 @@ func (p *ConfigParser) Get(section, option string) (string, error) {
 	return "", getNoOptionError(section, option)
 }
 
+func (p *ConfigParser) GetIntByType(section, option, fType string) (int64, error) {
+	result, err := p.Get(section, option)
+	if err != nil {
+		return 0, err
+	}
+
+	var value int64
+	switch fType {
+	default:
+		// consider int64 for default
+		fallthrough
+	case "int64", "int32", "int", "int16", "int8":
+		value, err = strconv.ParseInt(result, 10, 64)
+	case "rune":
+		value = int64(p.parseAsRune(result))
+	}
+
+	return value, err
+}
+
 // ItemsWithDefaults returns a copy of the named section Dict including
 // any values from the Defaults.
 //
@@ -157,17 +177,35 @@ func (p *ConfigParser) GetInt64(section, option string) (int64, error) {
 	return value, nil
 }
 
+func (p *ConfigParser) GetUint64(section, option string) (uint64, error) {
+	result, err := p.Get(section, option)
+	if err != nil {
+		return 0, err
+	}
+
+	value, err := strconv.ParseUint(result, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return value, nil
+}
+
 func (p *ConfigParser) GetRune(section, option string) rune {
 	result, err := p.Get(section, option)
 	if err != nil {
 		return 0
 	}
 
-	if len(result) == 0 {
+	if result == "" {
 		return 0
 	}
 
 	return ([]rune(result))[0]
+}
+
+func (p *ConfigParser) parseAsRune(value string) rune {
+	return ([]rune(value))[0]
 }
 
 func (p *ConfigParser) GetFloat64(section, option string) (float64, error) {

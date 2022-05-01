@@ -68,16 +68,21 @@ func ParseString(value string) (*ConfigParser, error) {
 	return parseString(value)
 }
 
-func ParseConfig(value interface{}, filename string) error {
+func ParseConfig(value any, filename string) error {
+	return ParseConfigWithOption(value, filename, nil)
+}
+
+func ParseConfigWithOption(value any, filename string, opt *ConfigParserOptions) error {
 	p, err := Parse(filename)
 	if err != nil {
 		return err
 	}
 
+	p.options = opt
 	return parseFinalConfig(value, p)
 }
 
-func ParseByteConfig(value interface{}, b []byte) error {
+func ParseByteConfig(value any, b []byte) error {
 	p, err := parseBytes(b)
 	if err != nil {
 		return err
@@ -86,7 +91,7 @@ func ParseByteConfig(value interface{}, b []byte) error {
 	return parseFinalConfig(value, p)
 }
 
-func ParseStringConfig(value interface{}, strValue string) error {
+func ParseStringConfig(value any, strValue string) error {
 	p, err := parseString(strValue)
 	if err != nil {
 		return err
@@ -95,7 +100,22 @@ func ParseStringConfig(value interface{}, strValue string) error {
 	return parseFinalConfig(value, p)
 }
 
-func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
+func ParseStringConfigWithOption(value any, strValue string, opt *ConfigParserOptions) error {
+	p, err := parseString(strValue)
+	if err != nil {
+		return err
+	}
+
+	p.options = opt
+
+	return parseFinalConfig(value, p)
+}
+
+func parseFinalConfig(v any, configValue *ConfigParser) error {
+	if configValue.options == nil {
+		configValue.options = &ConfigParserOptions{}
+	}
+
 	rv := reflect.ValueOf(v)
 	myType := reflect.TypeOf(v)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
@@ -120,6 +140,11 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 			shouldSkipCounter = false
 		}
 
+		if !currentField.CanSet() {
+			// ignore it
+			continue
+		}
+
 		switch currentField.Kind() {
 		case reflect.Struct:
 			continue
@@ -140,157 +165,360 @@ func parseFinalConfig(v interface{}, configValue *ConfigParser) error {
 			shouldSkipCounter = true
 			continue
 		case reflect.String:
-			if currentField.CanSet() {
-				fByName := myType.Field(currentIndex)
-				if !fByName.IsExported() {
-					continue
+			fByName := myType.Field(currentIndex)
+			if !fByName.IsExported() {
+				continue
+			}
+
+			section := fByName.Tag.Get("section")
+			key := fByName.Tag.Get("key")
+			done := false
+
+			theValue, err := configValue.Get(section, key)
+			if err == nil {
+				// first try: from config file.
+				currentField.SetString(theValue)
+				continue
+			}
+
+			envTag := fByName.Tag.Get("env")
+			var envTries []string
+			if envTag == "" && configValue.options.ReadEnv {
+				// if there is no env tag and we are told to allow
+				// reading values from env, try to read it from env.
+				if section != "" {
+					envTries = append(envTries, strings.ToUpper(section)+"_"+strings.ToUpper(key))
 				}
+				envTries = append(envTries, strings.ToUpper(key))
+			} else {
+				// if we are given an env tag, just use that, instead of trying a few times
+				// to find the correct variable in env...
+				envTries = append(envTries, envTag)
+			}
 
-				section := fByName.Tag.Get("section")
-				key := fByName.Tag.Get("key")
-
-				theValue, err := configValue.Get(section, key)
-				if err != nil {
-					theValue = fByName.Tag.Get("default")
-					if theValue == "" {
-						continue
+			for _, envTry := range envTries {
+				envValue := os.Getenv(envTry)
+				if envValue != "" {
+					theValue = envValue
+					if theValue != "" {
+						// second try: read it from env.
+						currentField.SetString(theValue)
+						break
 					}
 				}
+			}
 
+			if done {
+				continue
+			}
+
+			theValue = fByName.Tag.Get("default")
+			if theValue != "" {
+				// third try: from default value.
 				currentField.SetString(theValue)
+				continue
 			}
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			if currentField.CanSet() {
-				fByName := myType.Field(currentIndex)
-				if !fByName.IsExported() {
-					continue
+			fByName := myType.Field(currentIndex)
+			if !fByName.IsExported() {
+				continue
+			}
+
+			section := fByName.Tag.Get("section")
+			key := fByName.Tag.Get("key")
+			done := false
+			fType := strings.ToLower(fByName.Tag.Get("type"))
+			parseValue := func(strValue string) (int64, error) {
+				switch fType {
+				default:
+					// consider int64 for default
+					fallthrough
+				case "int64":
+					return strconv.ParseInt(strValue, 10, 64)
+				case "rune":
+					return int64(configValue.parseAsRune(strValue)), nil
 				}
+			}
 
-				section := fByName.Tag.Get("section")
-				key := fByName.Tag.Get("key")
-				fType := strings.ToLower(fByName.Tag.Get("type"))
+			theValue, err := configValue.GetIntByType(section, key, fType)
+			if err == nil {
+				// first try: from config file.
+				currentField.SetInt(theValue)
+				continue
+			}
 
-				theValue, err := configValue.GetInt64(section, key)
-				if err != nil && fType != "rune" {
-					theValue, err = strconv.ParseInt(fByName.Tag.Get("default"), 10, 64)
-					if theValue == 0 && err != nil {
-						continue
-					}
-				} else if fType == "rune" {
-					theValue = int64(configValue.GetRune(section, key))
-					if theValue == 0 {
-						continue
+			envTag := fByName.Tag.Get("env")
+			var envTries []string
+			if envTag == "" && configValue.options.ReadEnv {
+				// if there is no env tag and we are told to allow
+				// reading values from env, try to read it from env.
+				if section != "" {
+					envTries = append(envTries, strings.ToUpper(section)+"_"+strings.ToUpper(key))
+				}
+				envTries = append(envTries, strings.ToUpper(key))
+			} else {
+				// if we are given an env tag, just use that, instead of trying a few times
+				// to find the correct variable in env...
+				envTries = append(envTries, envTag)
+			}
+
+			for _, envTry := range envTries {
+				envValue := os.Getenv(envTry)
+				if envValue != "" {
+					theValue, err = parseValue(envValue)
+					if err == nil {
+						// second try: read it from env.
+						currentField.SetInt(theValue)
+						break
 					}
 				}
+			}
 
-				currentField.SetInt(int64(theValue))
+			if done {
+				continue
+			}
+
+			theValue, err = parseValue(fByName.Tag.Get("default"))
+			if err == nil {
+				// third try: from default value.
+				currentField.SetInt(theValue)
+				continue
 			}
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			if currentField.CanSet() {
-				fByName := myType.Field(currentIndex)
-				if !fByName.IsExported() {
-					continue
+			fByName := myType.Field(currentIndex)
+			if !fByName.IsExported() {
+				continue
+			}
+
+			section := fByName.Tag.Get("section")
+			key := fByName.Tag.Get("key")
+			done := false
+
+			theValue, err := configValue.GetUint64(section, key)
+			if err == nil {
+				// first try: from config file.
+				currentField.SetUint(uint64(theValue))
+				continue
+			}
+
+			envTag := fByName.Tag.Get("env")
+			var envTries []string
+			if envTag == "" && configValue.options.ReadEnv {
+				// if there is no env tag and we are told to allow
+				// reading values from env, try to read it from env.
+				if section != "" {
+					envTries = append(envTries, strings.ToUpper(section)+"_"+strings.ToUpper(key))
 				}
+				envTries = append(envTries, strings.ToUpper(key))
+			} else {
+				// if we are given an env tag, just use that, instead of trying a few times
+				// to find the correct variable in env...
+				envTries = append(envTries, envTag)
+			}
 
-				section := fByName.Tag.Get("section")
-				key := fByName.Tag.Get("key")
-
-				theValue, err := configValue.GetInt64(section, key)
-				if err != nil {
-					theValue, err = strconv.ParseInt(fByName.Tag.Get("default"), 10, 64)
-					if theValue == 0 && err != nil {
-						continue
+			for _, envTry := range envTries {
+				envValue := os.Getenv(envTry)
+				if envValue != "" {
+					theValue, err = strconv.ParseUint(envValue, 10, 64)
+					if err == nil {
+						// second try: read it from env.
+						currentField.SetUint(uint64(theValue))
+						break
 					}
 				}
+			}
 
+			if done {
+				continue
+			}
+
+			theValue, err = strconv.ParseUint(fByName.Tag.Get("default"), 10, 64)
+			if err == nil {
+				// third try: from default value.
 				currentField.SetUint(uint64(theValue))
+				continue
 			}
 		case reflect.Bool:
-			if currentField.CanSet() {
-				fByName := myType.Field(currentIndex)
-				if !fByName.IsExported() {
-					continue
-				}
+			fByName := myType.Field(currentIndex)
+			if !fByName.IsExported() {
+				continue
+			}
 
-				section := fByName.Tag.Get("section")
-				key := fByName.Tag.Get("key")
+			section := fByName.Tag.Get("section")
+			key := fByName.Tag.Get("key")
+			found, done := false, false
 
-				theValue, err := configValue.GetBool(section, key)
-				if err != nil {
-					theValueStr := fByName.Tag.Get("default")
-					if theValueStr == "" {
-						continue
-					}
-
-					var found bool
-					theValue, found = boolMapping[strings.ToLower(theValueStr)]
-					if !found {
-						continue
-					}
-				}
-
+			theValue, err := configValue.GetBool(section, key)
+			if err == nil {
+				// first try: from config file.
 				currentField.SetBool(theValue)
+				continue
+			}
+
+			envTag := fByName.Tag.Get("env")
+			var envTries []string
+			if envTag == "" && configValue.options.ReadEnv {
+				// if there is no env tag and we are told to allow
+				// reading values from env, try to read it from env.
+				if section != "" {
+					envTries = append(envTries, strings.ToUpper(section)+"_"+strings.ToUpper(key))
+				}
+				envTries = append(envTries, strings.ToUpper(key))
+			} else {
+				// if we are given an env tag, just use that, instead of trying a few times
+				// to find the correct variable in env...
+				envTries = append(envTries, envTag)
+			}
+
+			for _, envTry := range envTries {
+				envValue := os.Getenv(envTry)
+				if envValue != "" {
+					theValue, found = boolMapping[envValue]
+					if found {
+						// second try: read it from env.
+						currentField.SetBool(theValue)
+						break
+					}
+				}
+			}
+
+			if done {
+				continue
+			}
+
+			theValue, found = boolMapping[fByName.Tag.Get("default")]
+			if found {
+				// third try: from default value.
+				currentField.SetBool(theValue)
+				continue
 			}
 		case reflect.Float32, reflect.Float64:
-			if currentField.CanSet() {
-				fByName := myType.Field(currentIndex)
-				if !fByName.IsExported() {
-					continue
+			fByName := myType.Field(currentIndex)
+			if !fByName.IsExported() {
+				continue
+			}
+
+			section := fByName.Tag.Get("section")
+			key := fByName.Tag.Get("key")
+			done := false
+
+			theValue, err := configValue.GetFloat64(section, key)
+			if err == nil {
+				// first try: from config file.
+				currentField.SetFloat(theValue)
+				continue
+			}
+
+			envTag := fByName.Tag.Get("env")
+			var envTries []string
+			if envTag == "" && configValue.options.ReadEnv {
+				// if there is no env tag and we are told to allow
+				// reading values from env, try to read it from env.
+				if section != "" {
+					envTries = append(envTries, strings.ToUpper(section)+"_"+strings.ToUpper(key))
 				}
+				envTries = append(envTries, strings.ToUpper(key))
+			} else {
+				// if we are given an env tag, just use that, instead of trying a few times
+				// to find the correct variable in env...
+				envTries = append(envTries, envTag)
+			}
 
-				section := fByName.Tag.Get("section")
-				key := fByName.Tag.Get("key")
-
-				theValue, err := configValue.GetFloat64(section, key)
-				if err != nil {
-					theValue, err = strconv.ParseFloat(fByName.Tag.Get("default"), 64)
-					if theValue == 0 && err != nil {
-						continue
+			for _, envTry := range envTries {
+				envValue := os.Getenv(envTry)
+				if envValue != "" {
+					theValue, err = strconv.ParseFloat(envValue, 64)
+					if err == nil {
+						// second try: read it from env.
+						currentField.SetFloat(theValue)
+						break
 					}
 				}
+			}
 
+			if done {
+				continue
+			}
+
+			theValue, err = strconv.ParseFloat(fByName.Tag.Get("default"), 64)
+			if err == nil {
+				// third try: from default value.
 				currentField.SetFloat(theValue)
+				continue
 			}
 		case reflect.Complex64, reflect.Complex128:
-			if currentField.CanSet() {
-				fByName := myType.Field(currentIndex)
-				if !fByName.IsExported() {
-					continue
+			fByName := myType.Field(currentIndex)
+			if !fByName.IsExported() {
+				continue
+			}
+
+			section := fByName.Tag.Get("section")
+			key := fByName.Tag.Get("key")
+			done := false
+
+			theValue, err := configValue.GetComplex128(section, key)
+			if err == nil {
+				// first try: from config file.
+				currentField.SetComplex(theValue)
+				continue
+			}
+
+			envTag := fByName.Tag.Get("env")
+			var envTries []string
+			if envTag == "" && configValue.options.ReadEnv {
+				// if there is no env tag and we are told to allow
+				// reading values from env, try to read it from env.
+				if section != "" {
+					envTries = append(envTries, strings.ToUpper(section)+"_"+strings.ToUpper(key))
 				}
+				envTries = append(envTries, strings.ToUpper(key))
+			} else {
+				// if we are given an env tag, just use that, instead of trying a few times
+				// to find the correct variable in env...
+				envTries = append(envTries, envTag)
+			}
 
-				section := fByName.Tag.Get("section")
-				key := fByName.Tag.Get("key")
-
-				theValue, err := configValue.GetComplex128(section, key)
-				if err != nil {
-					theValue, err = strconv.ParseComplex(fByName.Tag.Get("default"), 128)
-					if theValue == 0 && err != nil {
-						continue
+			for _, envTry := range envTries {
+				envValue := os.Getenv(envTry)
+				if envValue != "" {
+					theValue, err = strconv.ParseComplex(envValue, 128)
+					if err == nil {
+						// second try: read it from env.
+						currentField.SetComplex(theValue)
+						done = true
+						break
 					}
 				}
+			}
 
+			if done {
+				continue
+			}
+
+			theValue, err = strconv.ParseComplex(fByName.Tag.Get("default"), 128)
+			if err == nil {
+				// third try: from default value.
 				currentField.SetComplex(theValue)
+				continue
 			}
 		case reflect.Array, reflect.Slice:
-			if currentField.CanSet() {
-				fByName := myType.Field(currentIndex)
-				myKind := getArrayKind(fByName.Type)
-				if !fByName.IsExported() {
-					continue
-				}
-
-				section := fByName.Tag.Get("section")
-				key := fByName.Tag.Get("key")
-				fType := strings.ToLower(fByName.Tag.Get("type"))
-				isRune := fType == "rune" || fType == "[]rune"
-
-				valueToSet, err := configValue.getArrayValueToSet(section, key, myKind, isRune)
-				if err != nil || valueToSet.IsNil() || !valueToSet.IsValid() {
-					continue
-				}
-
-				currentField.Set(valueToSet)
+			fByName := myType.Field(currentIndex)
+			myKind := getArrayKind(fByName.Type)
+			if !fByName.IsExported() {
+				continue
 			}
+
+			section := fByName.Tag.Get("section")
+			key := fByName.Tag.Get("key")
+			fType := strings.ToLower(fByName.Tag.Get("type"))
+			isRune := fType == "rune" || fType == "[]rune"
+
+			valueToSet, err := configValue.getArrayValueToSet(section, key, myKind, isRune)
+			if err != nil || valueToSet.IsNil() || !valueToSet.IsValid() {
+				continue
+			}
+
+			currentField.Set(valueToSet)
 		}
 	}
 
