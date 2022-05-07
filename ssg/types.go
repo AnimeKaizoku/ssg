@@ -110,7 +110,16 @@ type RangeFloat64 = rangeValues.RangeFloat64
 
 type ExecuteCommandResult = shellUtils.ExecuteCommandResult
 
-type safeList[T any] SafeMap[int, T]
+//type safeList[T any] #TODO: implement safe-list
+
+type StringUniqueIdContainer = UniqueIdContainer[string]
+type Int64UniqueIdContainer = UniqueIdContainer[int64]
+
+type UniqueIdContainer[T comparable] interface {
+	GetUniqueId() T
+	SetAsUniqueId(value T)
+	HasValidUniqueId() bool
+}
 
 type GenericList[T comparable] interface {
 	BasicObject
