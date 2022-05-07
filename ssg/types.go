@@ -9,6 +9,9 @@ import (
 	"hash"
 	"sync"
 	"time"
+
+	"github.com/AnimeKaizoku/ssg/ssg/rangeValues"
+	"github.com/AnimeKaizoku/ssg/ssg/shellUtils"
 )
 
 type ExpiringValue[T any] struct {
@@ -25,10 +28,13 @@ type ListW[T comparable] struct {
 	_values []T
 }
 
-// SafeMap is a safe map of type TIndex to pointers of type TValue.
+// AdvancedMap is a safe map of type TIndex to pointers of type TValue with
+// extra advanced features that you can't find in safe-map types.
+// obviously, because of its extra features, it's slightly slower than other
+// normal safe-map types.
 // this map is completely thread safe and is using internal lock when
 // getting and setting variables.
-type SafeMap[TKey comparable, TValue any] struct {
+type AdvancedMap[TKey comparable, TValue any] struct {
 	mut    *sync.Mutex
 	values map[TKey]*TValue
 	// keys field is a slice of the map keys used in the map above. We put them in a slice
@@ -37,6 +43,17 @@ type SafeMap[TKey comparable, TValue any] struct {
 	// We store the index of each key, so that when we remove an item, we can
 	// quickly remove it from the slice above.
 	sliceKeyIndex map[TKey]int
+	// _default field is the default value this map has to return in GetValue
+	// method when the key is not found.
+	_default TValue
+}
+
+// SafeMap is a safe map of type TIndex to pointers of type TValue.
+// this map is completely thread safe and is using internal lock when
+// getting and setting variables.
+type SafeMap[TKey comparable, TValue any] struct {
+	mut    *sync.Mutex
+	values map[TKey]*TValue
 	// _default field is the default value this map has to return in GetValue
 	// method when the key is not found.
 	_default TValue
@@ -85,6 +102,13 @@ type EndpointError struct {
 	Origin    string `json:"origin"`
 	Date      string `json:"date"`
 }
+
+type RangeInt = rangeValues.RangeInt
+type RangeInt32 = rangeValues.RangeInt32
+type RangeInt64 = rangeValues.RangeInt64
+type RangeFloat64 = rangeValues.RangeFloat64
+
+type ExecuteCommandResult = shellUtils.ExecuteCommandResult
 
 type safeList[T any] SafeMap[int, T]
 

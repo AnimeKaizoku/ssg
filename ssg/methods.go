@@ -542,21 +542,21 @@ func (l *ListW[T]) IsValid() bool {
 
 //---------------------------------------------------------
 
-func (s *SafeMap[TKey, TValue]) lock() {
+func (s *AdvancedMap[TKey, TValue]) lock() {
 	s.mut.Lock()
 }
-func (s *SafeMap[TKey, TValue]) unlock() {
+func (s *AdvancedMap[TKey, TValue]) unlock() {
 	s.mut.Unlock()
 }
 
-func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
+func (s *AdvancedMap[TKey, TValue]) Exists(key TKey) bool {
 	s.lock()
 	b := len(s.values) != 0 && s.values[key] != nil
 	s.unlock()
 	return b
 }
 
-func (s *SafeMap[TKey, TValue]) Add(key TKey, value *TValue) {
+func (s *AdvancedMap[TKey, TValue]) Add(key TKey, value *TValue) {
 	s.lock()
 	_, exists := s.values[key]
 	s.values[key] = value
@@ -572,7 +572,7 @@ func (s *SafeMap[TKey, TValue]) Add(key TKey, value *TValue) {
 	s.sliceKeyIndex[key] = index
 	s.unlock()
 }
-func (s *SafeMap[TKey, TValue]) GetRandom() *TValue {
+func (s *AdvancedMap[TKey, TValue]) GetRandom() *TValue {
 	if s.IsEmpty() {
 		return nil
 	}
@@ -586,7 +586,7 @@ func (s *SafeMap[TKey, TValue]) GetRandom() *TValue {
 	return value
 }
 
-func (s *SafeMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {
+func (s *AdvancedMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {
 	if fn == nil {
 		return
 	}
@@ -601,7 +601,7 @@ func (s *SafeMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {
 	s.unlock()
 }
 
-func (s *SafeMap[TKey, TValue]) GetRandomValue() TValue {
+func (s *AdvancedMap[TKey, TValue]) GetRandomValue() TValue {
 	if s.IsEmpty() {
 		return s._default
 	}
@@ -619,7 +619,7 @@ func (s *SafeMap[TKey, TValue]) GetRandomValue() TValue {
 	return *value
 }
 
-func (s *SafeMap[TKey, TValue]) GetRandomKey() (key TKey, ok bool) {
+func (s *AdvancedMap[TKey, TValue]) GetRandomKey() (key TKey, ok bool) {
 	if s.IsEmpty() {
 		return
 	}
@@ -630,6 +630,236 @@ func (s *SafeMap[TKey, TValue]) GetRandomKey() (key TKey, ok bool) {
 	s.unlock()
 
 	return
+}
+
+func (s *AdvancedMap[TKey, TValue]) ToArray() []TValue {
+	var array []TValue
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			array = append(array, s._default)
+			continue
+		}
+
+		array = append(array, *v)
+	}
+	s.unlock()
+
+	return array
+}
+
+func (s *AdvancedMap[TKey, TValue]) ToPointerArray() []*TValue {
+	var array []*TValue
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			// most likely impossible, this checker is here just for more safety.
+			continue
+		}
+
+		array = append(array, v)
+	}
+	s.unlock()
+
+	return array
+}
+
+func (s *AdvancedMap[TKey, TValue]) ToList() GenericList[*TValue] {
+	list := GetEmptyList[*TValue]()
+	s.lock()
+	for _, v := range s.values {
+		if v == nil {
+			// most likely impossible, this checker is here just for more safety.
+			continue
+		}
+
+		list.Add(v)
+	}
+	s.unlock()
+
+	return list
+}
+
+func (s *AdvancedMap[TKey, TValue]) AddList(keyGetter func(*TValue) TKey, elements ...TValue) {
+	if len(elements) == 0 || keyGetter == nil {
+		return
+	}
+
+	for _, current := range elements {
+		s.Add(keyGetter(&current), &current)
+	}
+}
+
+func (s *AdvancedMap[TKey, TValue]) AddPointerList(keyGetter func(*TValue) TKey, elements ...*TValue) {
+	if len(elements) == 0 || keyGetter == nil {
+		return
+	}
+
+	for _, current := range elements {
+		s.Add(keyGetter(current), current)
+	}
+}
+
+func (s *AdvancedMap[TKey, TValue]) delete(key TKey, useLock bool) {
+	if useLock {
+		s.lock()
+	}
+
+	// get index in key slice for key
+	index, exists := s.sliceKeyIndex[key]
+	if !exists {
+		if useLock {
+			s.unlock()
+		}
+		// item does not exist
+		return
+	}
+
+	delete(s.sliceKeyIndex, key)
+
+	wasLastIndex := len(s.keys)-1 == index
+
+	// remove key from slice of keys
+	s.keys[index] = s.keys[len(s.keys)-1]
+	s.keys = s.keys[:len(s.keys)-1]
+
+	// we just swapped the last element to another position.
+	// so we need to update it's index (if it was not in last position)
+	if !wasLastIndex {
+		otherKey := s.keys[index]
+		s.sliceKeyIndex[otherKey] = index
+	}
+
+	delete(s.values, key)
+	if useLock {
+		s.unlock()
+	}
+}
+
+func (s *AdvancedMap[TKey, TValue]) Delete(key TKey) {
+	s.delete(key, true)
+}
+
+func (s *AdvancedMap[TKey, TValue]) Get(key TKey) *TValue {
+	s.lock()
+	value := s.values[key]
+	s.unlock()
+	return value
+}
+
+func (s *AdvancedMap[TKey, TValue]) GetValue(key TKey) TValue {
+	s.lock()
+	value := s.values[key]
+	s.unlock()
+
+	if value == nil {
+		return s._default
+	}
+
+	return *value
+}
+
+func (s *AdvancedMap[TKey, TValue]) SetDefault(value TValue) {
+	s._default = value
+}
+
+// Set function sets the key of type TKey in this safe map to the value.
+// the value should be of type TValue or *TValue, otherwise this function won't
+// do anything at all.
+func (s *AdvancedMap[TKey, TValue]) Set(key TKey, value any) {
+	correctValue, ok := value.(*TValue)
+	if !ok {
+		anotherValue, ok := value.(TValue)
+		if !ok {
+			return
+		}
+
+		correctValue = &anotherValue
+	}
+
+	s.Add(key, correctValue)
+}
+
+// Clear will clear the whole map.
+func (s *AdvancedMap[TKey, TValue]) Clear() {
+	s.lock()
+	if len(s.values) != 0 {
+		s.values = make(map[TKey]*TValue)
+	}
+	s.unlock()
+}
+
+func (s *AdvancedMap[TKey, TValue]) Length() int {
+	s.lock()
+	l := len(s.values)
+	s.unlock()
+
+	return l
+}
+
+func (s *AdvancedMap[TKey, TValue]) IsEmpty() bool {
+	return s.Length() == 0
+}
+
+func (s *AdvancedMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
+	m := make(map[TKey]TValue)
+	s.lock()
+	for k, v := range s.values {
+		if v == nil {
+			m[k] = s._default
+			continue
+		}
+
+		m[k] = *v
+	}
+	s.unlock()
+
+	return m
+}
+
+func (s *AdvancedMap[TKey, TValue]) IsThreadSafe() bool {
+	return true
+}
+
+func (s *AdvancedMap[TKey, TValue]) IsValid() bool {
+	return s.Length() > 0
+}
+
+//---------------------------------------------------------
+
+func (s *SafeMap[TKey, TValue]) lock() {
+	s.mut.Lock()
+}
+func (s *SafeMap[TKey, TValue]) unlock() {
+	s.mut.Unlock()
+}
+
+func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
+	s.lock()
+	b := len(s.values) != 0 && s.values[key] != nil
+	s.unlock()
+	return b
+}
+
+func (s *SafeMap[TKey, TValue]) Add(key TKey, value *TValue) {
+	s.lock()
+	s.values[key] = value
+	s.unlock()
+}
+
+func (s *SafeMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {
+	if fn == nil {
+		return
+	}
+
+	s.lock()
+	for key, value := range s.values {
+		if fn(key, value) {
+			s.delete(key, false)
+		}
+	}
+
+	s.unlock()
 }
 
 func (s *SafeMap[TKey, TValue]) ToArray() []TValue {
@@ -703,37 +933,10 @@ func (s *SafeMap[TKey, TValue]) AddPointerList(keyGetter func(*TValue) TKey, ele
 func (s *SafeMap[TKey, TValue]) delete(key TKey, useLock bool) {
 	if useLock {
 		s.lock()
-	}
-
-	// get index in key slice for key
-	index, exists := s.sliceKeyIndex[key]
-	if !exists {
-		if useLock {
-			s.unlock()
-		}
-		// item does not exist
-		return
-	}
-
-	delete(s.sliceKeyIndex, key)
-
-	wasLastIndex := len(s.keys)-1 == index
-
-	// remove key from slice of keys
-	s.keys[index] = s.keys[len(s.keys)-1]
-	s.keys = s.keys[:len(s.keys)-1]
-
-	// we just swapped the last element to another position.
-	// so we need to update it's index (if it was not in last position)
-	if !wasLastIndex {
-		otherKey := s.keys[index]
-		s.sliceKeyIndex[otherKey] = index
+		defer s.unlock()
 	}
 
 	delete(s.values, key)
-	if useLock {
-		s.unlock()
-	}
 }
 
 func (s *SafeMap[TKey, TValue]) Delete(key TKey) {

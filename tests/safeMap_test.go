@@ -109,9 +109,9 @@ func TestSafeMap01(t *testing.T) {
 	}
 }
 
-func TestSafeMapRandom(t *testing.T) {
+func TestAdvancedMapRandom(t *testing.T) {
 	rand.Seed(time.Now().Unix())
-	m := ssg.NewSafeMap[string, string]()
+	m := ssg.NewAdvancedMap[string, string]()
 
 	var wg = new(sync.WaitGroup)
 

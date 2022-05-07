@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/AnimeKaizoku/ssg/ssg/shellUtils"
 	"github.com/AnimeKaizoku/ssg/ssg/strongParser"
 )
 
@@ -70,6 +71,116 @@ func ToQSlice(strs []string) []QString {
 
 func Split(s string, separator ...string) []string {
 	return SplitSliceN(s, separator, -1)
+}
+
+// MakeSureNum will make sure that when you convert `i`
+// to string, its length be the exact same as `count`.
+// it will append 0 to the left side of the number to do so.
+// for example:
+// MakeSureNum(5, 8) will return "00000005"
+func MakeSureNum(i, count int) string {
+	return MakeSureNumCustom(i, count, "0")
+}
+
+// MakeSureNumCustom will make sure that when you convert `i`
+// to string, its length be the exact same as `count`.
+// it will append 0 to the left side of the number to do so.
+// for example:
+// MakeSureNum(5, 8) will return "00000005"
+func MakeSureNumCustom(i, count int, holder string) string {
+	s := strconv.Itoa(i)
+	final := count - len(s)
+	for ; final > 0; final-- {
+		s = holder + s
+	}
+
+	return s
+}
+
+func GetPrettyTimeDuration(d time.Duration, shorten bool) string {
+	var result string
+	totalSeconds := int(d.Seconds())
+
+	year := totalSeconds / (60 * 60 * 24 * 365)
+	totalSeconds -= year * (60 * 60 * 24 * 365)
+
+	month := totalSeconds / (60 * 60 * 24 * 30)
+	totalSeconds -= month * (60 * 60 * 24 * 30)
+
+	day := totalSeconds / (60 * 60 * 24)
+	totalSeconds -= day * (60 * 60 * 24)
+
+	hour := totalSeconds / (60 * 60)
+	totalSeconds -= hour * (60 * 60)
+
+	minute := totalSeconds / 60
+	totalSeconds -= minute * 60
+
+	seconds := totalSeconds
+
+	yBool := year > 0
+	mBool := month > 0 || yBool
+	shorten = !mBool && shorten
+	dBool := day > 0 || mBool
+	hBool := hour > 0 || dBool
+	if yBool {
+		result += strconv.Itoa(year) + " year"
+		if year > 1 {
+			result += "s"
+		}
+		result += " "
+	}
+	if mBool {
+		result += " " + strconv.Itoa(month) + " month"
+		if month > 1 {
+			result += "s"
+		}
+		result += " "
+	}
+	if dBool {
+		result += strconv.Itoa(day)
+		if shorten {
+			result += "d"
+		} else {
+			result += " day"
+			if day > 1 {
+				result += "s"
+			}
+		}
+		result += " "
+	}
+	if hBool {
+		result += strconv.Itoa(hour)
+		if shorten {
+			result += "h"
+		} else {
+			result += " hour"
+			if hour > 1 {
+				result += "s"
+			}
+		}
+		result += " "
+	}
+	result += strconv.Itoa(minute)
+	if shorten {
+		result += "m"
+	} else {
+		result += " minute"
+		if minute > 1 {
+			result += "s"
+		}
+	}
+
+	result += " " + strconv.Itoa(seconds)
+	if shorten {
+		result += "s"
+	} else {
+		result += " second"
+		if seconds > 1 {
+			result += "s"
+		}
+	}
+	return result
 }
 
 // SplitWhite splits the string with the given separator
@@ -192,6 +303,14 @@ func ParseConfig(value interface{}, filename string) error {
 	return strongParser.ParseConfig(value, filename)
 }
 
+func RunCommand(command string) *ExecuteCommandResult {
+	return shellUtils.RunCommand(command)
+}
+
+func RunCommandAsync(command string) *ExecuteCommandResult {
+	return shellUtils.RunCommandAsync(command)
+}
+
 func ToBool(str string) bool {
 	str = strings.ToLower(strings.TrimSpace(str))
 	if str == LowerYes || str == LowerTrueStr || str == LowerOnStr {
@@ -285,6 +404,13 @@ func NewEValue[T any](value T) *ExpiringValue[T] {
 
 func NewSafeMap[TKey comparable, TValue any]() *SafeMap[TKey, TValue] {
 	return &SafeMap[TKey, TValue]{
+		mut:    &sync.Mutex{},
+		values: make(map[TKey]*TValue),
+	}
+}
+
+func NewAdvancedMap[TKey comparable, TValue any]() *AdvancedMap[TKey, TValue] {
+	return &AdvancedMap[TKey, TValue]{
 		mut:           &sync.Mutex{},
 		values:        make(map[TKey]*TValue),
 		sliceKeyIndex: make(map[TKey]int),
