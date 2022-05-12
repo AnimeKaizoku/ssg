@@ -351,7 +351,7 @@ func ToBase32(value int64) string {
 func ToValidIntegerString(value string) string {
 	newValue := ""
 	for _, current := range value {
-		if unicode.IsNumber(current) {
+		if unicode.IsNumber(current) || current == '-'{
 			newValue += string(current)
 		}
 	}
