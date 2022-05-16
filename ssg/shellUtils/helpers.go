@@ -80,6 +80,7 @@ func executeCommand(
 	cmd.Env = append(cmd.Env, config.AdditionalEnv...)
 
 	result.cmd = cmd
+	result.FinishedChan = config.FinishedChan
 
 	if isAsync {
 		go func() {
