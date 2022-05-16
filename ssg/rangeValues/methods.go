@@ -7,11 +7,11 @@ import (
 
 //---------------------------------------------------------
 
-func (r *RangeInt32) IsInRange(value int32) bool {
+func (r *IntegerRange[T]) IsInRange(value T) bool {
 	return r.Min <= value && r.Max >= value
 }
 
-func (r *RangeInt32) IsValueInRange(value *RangeInt32) bool {
+func (r *IntegerRange[T]) IsValueInRange(value *IntegerRange[T]) bool {
 	if value == nil {
 		return false
 	}
@@ -20,46 +20,8 @@ func (r *RangeInt32) IsValueInRange(value *RangeInt32) bool {
 		(r.Min <= value.Min && r.Max >= value.Max)
 }
 
-func (r *RangeInt32) GetRandom() int32 {
-	return rand.Int31n(r.Max-r.Min) + r.Min
-}
-
-//---------------------------------------------------------
-
-func (r *RangeInt) IsInRange(value int) bool {
-	return r.Min <= value && r.Max >= value
-}
-
-func (r *RangeInt) IsValueInRange(value *RangeInt) bool {
-	if value == nil {
-		return false
-	}
-
-	return value == r ||
-		(r.Min <= value.Min && r.Max >= value.Max)
-}
-
-func (r *RangeInt) GetRandom() int {
-	return rand.Intn(r.Max-r.Min) + r.Min
-}
-
-//---------------------------------------------------------
-
-func (r *RangeInt64) IsInRange(value int64) bool {
-	return r.Min <= value && r.Max >= value
-}
-
-func (r *RangeInt64) IsValueInRange(value *RangeInt64) bool {
-	if value == nil {
-		return false
-	}
-
-	return value == r ||
-		(r.Min <= value.Min && r.Max >= value.Max)
-}
-
-func (r *RangeInt64) GetRandom() int64 {
-	return rand.Int63n(r.Max-r.Min) + r.Min
+func (r *IntegerRange[T]) GetRandom() T {
+	return T(rand.Int63n(int64(r.Max-r.Min)) + int64(r.Min))
 }
 
 //---------------------------------------------------------

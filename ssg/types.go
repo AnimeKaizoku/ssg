@@ -59,6 +59,11 @@ type SafeMap[TKey comparable, TValue any] struct {
 	_default TValue
 }
 
+type NumIdGenerator[T rangeValues.Integer] struct {
+	current T
+	mut     *sync.Mutex
+}
+
 // SafeEMap is a safe map of type TIndex to pointers of type TValue.
 // this map is completely thread safe and is using internal lock when
 // getting and setting variables.
@@ -103,9 +108,9 @@ type EndpointError struct {
 	Date      string `json:"date"`
 }
 
-type RangeInt = rangeValues.RangeInt
-type RangeInt32 = rangeValues.RangeInt32
-type RangeInt64 = rangeValues.RangeInt64
+type RangeInt = rangeValues.IntegerRange[int]
+type RangeInt32 = rangeValues.IntegerRange[int32]
+type RangeInt64 = rangeValues.IntegerRange[int64]
 type RangeFloat64 = rangeValues.RangeFloat64
 
 type ExecuteCommandResult = shellUtils.ExecuteCommandResult

@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/AnimeKaizoku/ssg/ssg/rangeValues"
 	"github.com/AnimeKaizoku/ssg/ssg/shellUtils"
 	"github.com/AnimeKaizoku/ssg/ssg/strongParser"
 )
@@ -426,6 +427,12 @@ func NewSafeEMap[TKey comparable, TValue any]() *SafeEMap[TKey, TValue] {
 		mut:           &sync.RWMutex{},
 		values:        make(map[TKey]*ExpiringValue[*TValue]),
 		sliceKeyIndex: make(map[TKey]int),
+	}
+}
+
+func NewNumIdGenerator[T rangeValues.Integer]() *NumIdGenerator[T] {
+	return &NumIdGenerator[T]{
+		mut: &sync.Mutex{},
 	}
 }
 
