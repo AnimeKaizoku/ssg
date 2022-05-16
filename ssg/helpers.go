@@ -312,7 +312,7 @@ func RunCommandAsync(command string) *ExecuteCommandResult {
 }
 
 func RunCommandAsyncWithChan(command string, finishedChan chan bool) *ExecuteCommandResult {
-	return shellUtils.RunCommandAsync(command)
+	return shellUtils.RunCommandAsyncWithChan(command, finishedChan)
 }
 
 func ToBool(str string) bool {
