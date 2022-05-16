@@ -75,7 +75,11 @@ func ParseConfig(value any, filename string) error {
 func ParseConfigWithOption(value any, filename string, opt *ConfigParserOptions) error {
 	p, err := Parse(filename)
 	if err != nil {
-		return err
+		if opt == nil && !opt.ReadEnv {
+			return err
+		}
+
+		p = NewConfigParser()
 	}
 
 	p.options = opt
