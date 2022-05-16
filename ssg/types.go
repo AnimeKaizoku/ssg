@@ -52,7 +52,7 @@ type AdvancedMap[TKey comparable, TValue any] struct {
 // this map is completely thread safe and is using internal lock when
 // getting and setting variables.
 type SafeMap[TKey comparable, TValue any] struct {
-	mut    *sync.Mutex
+	mut    *sync.RWMutex
 	values map[TKey]*TValue
 	// _default field is the default value this map has to return in GetValue
 	// method when the key is not found.
@@ -68,7 +68,7 @@ type SafeEMap[TKey comparable, TValue any] struct {
 	checkingEnabled bool
 	checkInterval   time.Duration
 	expiration      time.Duration
-	mut             *sync.Mutex
+	mut             *sync.RWMutex
 	checkerMut      *sync.Mutex
 	values          map[TKey]*ExpiringValue[*TValue]
 	// keys field is a slice of the map keys used in the map above. We put them in a slice

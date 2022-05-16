@@ -830,14 +830,23 @@ func (s *AdvancedMap[TKey, TValue]) IsValid() bool {
 func (s *SafeMap[TKey, TValue]) lock() {
 	s.mut.Lock()
 }
+
 func (s *SafeMap[TKey, TValue]) unlock() {
 	s.mut.Unlock()
 }
 
+func (s *SafeMap[TKey, TValue]) rLock() {
+	s.mut.RLock()
+}
+
+func (s *SafeMap[TKey, TValue]) rUnlock() {
+	s.mut.RUnlock()
+}
+
 func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
-	s.lock()
-	b := len(s.values) != 0 && s.values[key] != nil
-	s.unlock()
+	s.rLock()
+	_, b := s.values[key]
+	s.rUnlock()
 	return b
 }
 
@@ -864,7 +873,7 @@ func (s *SafeMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {
 
 func (s *SafeMap[TKey, TValue]) ToArray() []TValue {
 	var array []TValue
-	s.lock()
+	s.rLock()
 	for _, v := range s.values {
 		if v == nil {
 			array = append(array, s._default)
@@ -873,14 +882,14 @@ func (s *SafeMap[TKey, TValue]) ToArray() []TValue {
 
 		array = append(array, *v)
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return array
 }
 
 func (s *SafeMap[TKey, TValue]) ToPointerArray() []*TValue {
 	var array []*TValue
-	s.lock()
+	s.rLock()
 	for _, v := range s.values {
 		if v == nil {
 			// most likely impossible, this checker is here just for more safety.
@@ -889,14 +898,14 @@ func (s *SafeMap[TKey, TValue]) ToPointerArray() []*TValue {
 
 		array = append(array, v)
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return array
 }
 
 func (s *SafeMap[TKey, TValue]) ToList() GenericList[*TValue] {
 	list := GetEmptyList[*TValue]()
-	s.lock()
+	s.rLock()
 	for _, v := range s.values {
 		if v == nil {
 			// most likely impossible, this checker is here just for more safety.
@@ -905,7 +914,7 @@ func (s *SafeMap[TKey, TValue]) ToList() GenericList[*TValue] {
 
 		list.Add(v)
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return list
 }
@@ -944,16 +953,16 @@ func (s *SafeMap[TKey, TValue]) Delete(key TKey) {
 }
 
 func (s *SafeMap[TKey, TValue]) Get(key TKey) *TValue {
-	s.lock()
+	s.rLock()
 	value := s.values[key]
-	s.unlock()
+	s.rUnlock()
 	return value
 }
 
 func (s *SafeMap[TKey, TValue]) GetValue(key TKey) TValue {
-	s.lock()
+	s.rLock()
 	value := s.values[key]
-	s.unlock()
+	s.rUnlock()
 
 	if value == nil {
 		return s._default
@@ -993,9 +1002,9 @@ func (s *SafeMap[TKey, TValue]) Clear() {
 }
 
 func (s *SafeMap[TKey, TValue]) Length() int {
-	s.lock()
+	s.rLock()
 	l := len(s.values)
-	s.unlock()
+	s.rUnlock()
 
 	return l
 }
@@ -1006,7 +1015,7 @@ func (s *SafeMap[TKey, TValue]) IsEmpty() bool {
 
 func (s *SafeMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
 	m := make(map[TKey]TValue)
-	s.lock()
+	s.rLock()
 	for k, v := range s.values {
 		if v == nil {
 			m[k] = s._default
@@ -1015,7 +1024,7 @@ func (s *SafeMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
 
 		m[k] = *v
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return m
 }
@@ -1033,14 +1042,23 @@ func (s *SafeMap[TKey, TValue]) IsValid() bool {
 func (s *SafeEMap[TKey, TValue]) lock() {
 	s.mut.Lock()
 }
+
 func (s *SafeEMap[TKey, TValue]) unlock() {
 	s.mut.Unlock()
 }
 
+func (s *SafeEMap[TKey, TValue]) rLock() {
+	s.mut.RLock()
+}
+
+func (s *SafeEMap[TKey, TValue]) rUnlock() {
+	s.mut.RUnlock()
+}
+
 func (s *SafeEMap[TKey, TValue]) Exists(key TKey) bool {
-	s.lock()
-	b := len(s.values) != 0 && s.values[key] != nil
-	s.unlock()
+	s.rLock()
+	_, b := s.values[key]
+	s.rUnlock()
 	return b
 }
 
@@ -1056,7 +1074,7 @@ func (s *SafeEMap[TKey, TValue]) AddList(keyGetter func(*TValue) TKey, elements 
 
 func (s *SafeEMap[TKey, TValue]) ToList() GenericList[*TValue] {
 	list := GetEmptyList[*TValue]()
-	s.lock()
+	s.rLock()
 	for _, v := range s.values {
 		if v == nil {
 			// most likely impossible, this checker is here just for more safety.
@@ -1065,7 +1083,7 @@ func (s *SafeEMap[TKey, TValue]) ToList() GenericList[*TValue] {
 
 		list.Add(v.GetValue())
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return list
 }
@@ -1169,11 +1187,11 @@ func (s *SafeEMap[TKey, TValue]) GetRandom() *TValue {
 		return nil
 	}
 
-	s.lock()
+	s.rLock()
 	randomIndex := rand.Intn(len(s.keys))
 	key := s.keys[randomIndex]
 	value := s.values[key]
-	s.unlock()
+	s.rUnlock()
 
 	return value.GetValue()
 }
@@ -1183,11 +1201,11 @@ func (s *SafeEMap[TKey, TValue]) GetRandomValue() TValue {
 		return s._default
 	}
 
-	s.lock()
+	s.rLock()
 	randomIndex := rand.Intn(len(s.keys))
 	key := s.keys[randomIndex]
 	value := s.values[key]
-	s.unlock()
+	s.rUnlock()
 
 	return s.getRealValue(value)
 }
@@ -1198,17 +1216,17 @@ func (s *SafeEMap[TKey, TValue]) GetRandomKey() (key TKey, ok bool) {
 	}
 	ok = true
 
-	s.lock()
+	s.rLock()
 	key = s.keys[rand.Intn(len(s.keys))]
-	s.unlock()
+	s.rUnlock()
 
 	return
 }
 
 func (s *SafeEMap[TKey, TValue]) Get(key TKey) *TValue {
-	s.lock()
+	s.rLock()
 	value := s.values[key]
-	s.unlock()
+	s.rUnlock()
 	if value == nil {
 		return nil
 	}
@@ -1217,9 +1235,9 @@ func (s *SafeEMap[TKey, TValue]) Get(key TKey) *TValue {
 }
 
 func (s *SafeEMap[TKey, TValue]) GetValue(key TKey) TValue {
-	s.lock()
+	s.rLock()
 	value := s.values[key]
-	s.unlock()
+	s.rUnlock()
 
 	return s.getRealValue(value)
 }
@@ -1255,9 +1273,9 @@ func (s *SafeEMap[TKey, TValue]) Clear() {
 }
 
 func (s *SafeEMap[TKey, TValue]) Length() int {
-	s.lock()
+	s.rLock()
 	l := len(s.values)
-	s.unlock()
+	s.rUnlock()
 
 	return l
 }
@@ -1268,7 +1286,7 @@ func (s *SafeEMap[TKey, TValue]) IsEmpty() bool {
 
 func (s *SafeEMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
 	m := make(map[TKey]TValue)
-	s.lock()
+	s.rLock()
 	for k, v := range s.values {
 		if v == nil {
 			m[k] = s._default
@@ -1283,14 +1301,14 @@ func (s *SafeEMap[TKey, TValue]) ToNormalMap() map[TKey]TValue {
 
 		m[k] = *realValue
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return m
 }
 
 func (s *SafeEMap[TKey, TValue]) ToArray() []TValue {
 	var array []TValue
-	s.lock()
+	s.rLock()
 	for _, v := range s.values {
 		if v == nil {
 			array = append(array, s._default)
@@ -1305,14 +1323,14 @@ func (s *SafeEMap[TKey, TValue]) ToArray() []TValue {
 
 		array = append(array, *realValue)
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return array
 }
 
 func (s *SafeEMap[TKey, TValue]) ToPointerArray() []*TValue {
 	var array []*TValue
-	s.lock()
+	s.rLock()
 	for _, v := range s.values {
 		if v == nil {
 			// most likely impossible, this checker is here just for more safety.
@@ -1321,7 +1339,7 @@ func (s *SafeEMap[TKey, TValue]) ToPointerArray() []*TValue {
 
 		array = append(array, v._value)
 	}
-	s.unlock()
+	s.rUnlock()
 
 	return array
 }

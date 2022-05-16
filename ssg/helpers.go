@@ -311,6 +311,10 @@ func RunCommandAsync(command string) *ExecuteCommandResult {
 	return shellUtils.RunCommandAsync(command)
 }
 
+func RunCommandAsyncWithChan(command string, finishedChan chan bool) *ExecuteCommandResult {
+	return shellUtils.RunCommandAsync(command)
+}
+
 func ToBool(str string) bool {
 	str = strings.ToLower(strings.TrimSpace(str))
 	if str == LowerYes || str == LowerTrueStr || str == LowerOnStr {
@@ -351,7 +355,7 @@ func ToBase32(value int64) string {
 func ToValidIntegerString(value string) string {
 	newValue := ""
 	for _, current := range value {
-		if unicode.IsNumber(current) || current == '-'{
+		if unicode.IsNumber(current) || current == '-' {
 			newValue += string(current)
 		}
 	}

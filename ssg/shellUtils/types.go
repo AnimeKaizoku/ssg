@@ -14,6 +14,7 @@ type ExecuteCommandConfig struct {
 	AdditionalArgs []string
 	AdditionalEnv  []string
 	ExtraFiles     []*os.File
+	FinishedChan   chan bool
 
 	autoSetOutput bool
 }
@@ -35,9 +36,10 @@ type ExecuteCommandResult struct {
 	// it can be nil.
 	Error error
 	// IsKilled field is set to true only if the `Kill` method is called.
-	IsKilled   bool
-	IsFinished bool
-	IsReleased bool
+	IsKilled     bool
+	IsFinished   bool
+	IsReleased   bool
+	FinishedChan chan bool
 
 	autoSetOutput bool
 	cmd           *exec.Cmd

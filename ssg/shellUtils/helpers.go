@@ -8,14 +8,18 @@ import (
 )
 
 func RunCommand(command string) *ExecuteCommandResult {
-	return runCommand(command, false)
+	return runCommand(command, false, nil)
 }
 
 func RunCommandAsync(command string) *ExecuteCommandResult {
-	return runCommand(command, true)
+	return runCommand(command, true, nil)
 }
 
-func runCommand(command string, isAsync bool) *ExecuteCommandResult {
+func RunCommandAsyncWithChan(command string, finishedChan chan bool) *ExecuteCommandResult {
+	return runCommand(command, true, finishedChan)
+}
+
+func runCommand(command string, isAsync bool, finishedChan chan bool) *ExecuteCommandResult {
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 	var result *ExecuteCommandResult
@@ -24,6 +28,7 @@ func runCommand(command string, isAsync bool) *ExecuteCommandResult {
 			Stdout:        stdout,
 			Stderr:        stderr,
 			autoSetOutput: true,
+			FinishedChan:  finishedChan,
 		}, true)
 		return result
 	} else {
@@ -90,6 +95,10 @@ func executeCommand(
 				if ok && stderr != nil {
 					result.Stderr = stderr.String()
 				}
+			}
+
+			if result.FinishedChan != nil {
+				result.FinishedChan <- true
 			}
 		}()
 	} else {
