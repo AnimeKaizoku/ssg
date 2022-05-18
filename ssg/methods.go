@@ -1513,6 +1513,19 @@ func (n *NumIdGenerator[T]) Set(current T) {
 	n.current = current
 }
 
+// SafeSet method will set the current value to the given value
+// if and only if the passed value is more than current value of
+// the generator.
+// please do notice that with calling n.Next() method, you will get
+// the next id and not the current value.
+func (n *NumIdGenerator[T]) SafeSet(current T) {
+	n.mut.Lock()
+	defer n.mut.Unlock()
+	if current > n.current {
+		n.current = current
+	}
+}
+
 // Reset method will set the current value to 0.
 func (n *NumIdGenerator[T]) Reset() {
 	n.mut.Lock()
