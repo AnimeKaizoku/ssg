@@ -155,18 +155,18 @@ type MetaDataProvider interface {
 	GetUInt64NoErr(key string) uint64
 	GetBoolNoErr(key string) bool
 
-	Set(key string) string
-	SetInt(key string) int
-	SetInt8(key string) int8
-	SetInt16(key string) int16
-	SetInt32(key string) int32
-	SetInt64(key string) int64
-	SetUInt(key string) uint
-	SetUInt8(key string) uint8
-	SetUInt16(key string) uint16
-	SetUInt32(key string) uint32
-	SetUInt64(key string) uint64
-	SetBool(key string) bool
+	Set(key, value string)
+	SetInt(key string, value int)
+	SetInt8(key string, value int8)
+	SetInt16(key string, value int16)
+	SetInt32(key string, value int32)
+	SetInt64(key string, value int64)
+	SetUInt(key string, value uint)
+	SetUInt8(key string, value uint8)
+	SetUInt16(key string, value uint16)
+	SetUInt32(key string, value uint32)
+	SetUInt64(key string, value uint64)
+	SetBool(key string, value bool)
 }
 
 type GenericList[T comparable] interface {
