@@ -464,6 +464,21 @@ func IsAllNumbers(str ...string) bool {
 	return true
 }
 
+// Clone function will make an exact copy of the given
+// value. It will return nil if the given value is nil,
+// so it's guaranteed to execute without panic.
+// Usage of this function is up to the users, but it's recommended
+// to not use it on large structures, since it will allocate too much
+// memory.
+func Clone[T any](value *T) *T {
+	if value == nil {
+		return nil
+	}
+
+	tmp := *value
+	return &tmp
+}
+
 func IsRuneNumber(r rune) bool {
 	if r <= unicode.MaxLatin1 {
 		return '0' <= r && r <= '9'

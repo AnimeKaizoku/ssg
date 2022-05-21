@@ -6,12 +6,32 @@
 package tests
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"testing"
 
 	ws "github.com/AnimeKaizoku/ssg/ssg"
 )
+
+func TestClone(t *testing.T) {
+	myValue := &struct {
+		Name string
+	}{}
+
+	add1 := fmt.Sprintf("%p", myValue)
+	add2 := fmt.Sprintf("%p", ws.Clone(myValue))
+	add3 := fmt.Sprintf("%p", myValue)
+	if add1 == add2 {
+		t.Error("Expected different pointers")
+		return
+	}
+
+	if add1 != add3 {
+		t.Error("Expected same pointers")
+		return
+	}
+}
 
 func TestTitleCase(t *testing.T) {
 	const (
