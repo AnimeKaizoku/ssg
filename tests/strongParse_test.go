@@ -14,8 +14,8 @@ type MyConfigStruct struct {
 	BotName         *string    `section:"main" key:"bot_name"`
 	BotComplex      complex128 `section:"main" key:"bot_complex"`
 	BotUsername     string     `section:"telegram" key:"bot_username"`
-	SinglePrefix    rune       `section:"telegram" key:"single_prefix"`
-	CmdPrefixed     []rune     `section:"telegram" key:"cmd_prefixed"`
+	SinglePrefix    rune       `section:"telegram" key:"single_prefix" type:"rune"`
+	CmdPrefixed     []rune     `section:"telegram" key:"cmd_prefixes" type:"[]rune"`
 	BotOwner        int64      `section:"telegram" key:"bot_owner"`
 	OwnerIds        []int64    `section:"telegram" key:"owner_ids"`
 	OwnerNumbers    []int32    `section:"telegram" key:"owner_numbers"`
@@ -26,13 +26,31 @@ type MyConfigStruct struct {
 	APIUrl          string     `key:"api_url"`
 }
 
+type MainSectionStruct struct {
+	PgDump      string `key:"pg_dump_command"`
+	LogChannels string `key:"log_channels"`
+}
+
+type ValueSectionStruct struct {
+	TheToken        string   `key:"the_token"`
+	BotUsername     string   `key:"bot_username"`
+	SinglePrefix    rune     `key:"single_prefix" type:"rune"`
+	CmdPrefixed     []rune   `key:"cmd_prefixes" type:"[]rune"`
+	BotOwner        int64    `key:"bot_owner"`
+	OwnerIds        []int64  `key:"owner_ids"`
+	OwnerNumbers    []int32  `key:"owner_numbers"`
+	OwnerNames      []string `key:"owner_names"`
+	OwnerSupporting []bool   `key:"owner_supporting"`
+	sectionName     string
+}
+
 type MyRuneStruct struct {
 	SinglePrefix rune    `section:"telegram" key:"single_prefix" type:"rune"`
 	CmdPrefixes  []rune  `section:"telegram" key:"cmd_prefixes" type:"[]rune"`
 	shouldIgnore *string `section:"telegram" key:"should_ignore"`
 }
 
-const TheStrValue = `
+const TheStrValue01 = `
 [main]
 the_token = 12345:abcd
 bot_id = 202012345
@@ -55,9 +73,71 @@ url = postgres://user:pass@localhost:5432/dbname
 
 `
 
+const TheStrValue02 = `
+[main]
+pg_dump_command = pg_dump
+log_channels = 12454, -124578
+
+[SaitamaRobot]
+the_token = 12345:abcd
+bot_username = @SaitamaRobot
+bot_owner = 123456
+owner_ids = 123456, 1234567
+owner_names = sayan, aliwoto, sawada
+owner_numbers = 1234567, 12345678, 123456789
+owner_supporting = true, false, true
+single_prefix = !
+cmd_prefixes = /, !, #
+
+[KigyoRobot]
+the_token = 72345:abcd
+bot_username = @kigyorobot
+bot_owner = 123456
+owner_ids = 123456, 1234567
+owner_names = sayan, aliwoto, sawada
+owner_numbers = 1234567, 12345678, 123456789
+owner_supporting = true, false, true
+single_prefix = !
+cmd_prefixes = /, !, #
+
+[ShellderRobot]
+the_token = 82345:abcdefg
+bot_username = @ShellderRobot
+bot_owner = 123456
+owner_ids = 123456, 1234567
+owner_names = sayan, aliwoto, sawada
+owner_numbers = 1234567, 12345678, 123456789
+owner_supporting = true, false, true
+single_prefix = !
+cmd_prefixes = /, !, #
+
+`
+
+func (v *ValueSectionStruct) SetSectionName(name string) {
+	v.sectionName = name
+}
+
+func (v *ValueSectionStruct) GetSectionName() string {
+	return v.sectionName
+}
+
+func TestMainAndArrayParser(t *testing.T) {
+	opt := &strongParser.ConfigParserOptions{}
+	container, err := strongParser.ParseMainAndArraysStr[MainSectionStruct, ValueSectionStruct](TheStrValue02, opt)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if container == nil {
+		t.Error("got nil container")
+		return
+	}
+}
+
 func TestStrongParser(t *testing.T) {
 	myValue := &MyConfigStruct{}
-	err := strongParser.ParseStringConfig(myValue, TheStrValue)
+	err := strongParser.ParseStringConfig(myValue, TheStrValue01)
 	if err != nil {
 		t.Error(err)
 		return
@@ -69,7 +149,7 @@ func TestStrongParser(t *testing.T) {
 func TestParseFromEnv(t *testing.T) {
 	myValue := &MyConfigStruct{}
 	os.Setenv("API_URL", "google.com")
-	err := strongParser.ParseStringConfigWithOption(myValue, TheStrValue, &strongParser.ConfigParserOptions{
+	err := strongParser.ParseStringConfigWithOption(myValue, TheStrValue01, &strongParser.ConfigParserOptions{
 		ReadEnv: true,
 	})
 	if err != nil {
@@ -85,7 +165,7 @@ func TestParseFromEnv(t *testing.T) {
 
 func TestStrongRuneParser(t *testing.T) {
 	myValue := &MyRuneStruct{}
-	err := strongParser.ParseStringConfig(myValue, TheStrValue)
+	err := strongParser.ParseStringConfig(myValue, TheStrValue01)
 	if err != nil {
 		t.Error(err)
 		return

@@ -30,10 +30,21 @@ type ConfigParser struct {
 	options  *ConfigParserOptions
 }
 
+type MainAndArrayContainer[mT any, mA any] struct {
+	Main     *mT
+	Sections []*mA
+}
+
 type ChainMap struct {
 	maps []Dict
 }
 
 type ConfigParserOptions struct {
-	ReadEnv bool
+	ReadEnv         bool
+	MainSectionName string
+}
+
+type SectionValue interface {
+	SetSectionName(name string)
+	GetSectionName() string
 }
