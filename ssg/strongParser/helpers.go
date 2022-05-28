@@ -440,7 +440,7 @@ func parseFinalConfigBySection(v any, section string, configValue *ConfigParser)
 			for _, envTry := range envTries {
 				envValue := os.Getenv(envTry)
 				if envValue != "" {
-					theValue, found = boolMapping[envValue]
+					theValue, found = BoolMapping[envValue]
 					if found {
 						// second try: read it from env.
 						currentField.SetBool(theValue)
@@ -453,7 +453,7 @@ func parseFinalConfigBySection(v any, section string, configValue *ConfigParser)
 				continue
 			}
 
-			theValue, found = boolMapping[fByName.Tag.Get("default")]
+			theValue, found = BoolMapping[fByName.Tag.Get("default")]
 			if found {
 				// third try: from default value.
 				currentField.SetBool(theValue)
@@ -851,7 +851,7 @@ func parseFinalConfig(v any, configValue *ConfigParser) error {
 			for _, envTry := range envTries {
 				envValue := os.Getenv(envTry)
 				if envValue != "" {
-					theValue, found = boolMapping[envValue]
+					theValue, found = BoolMapping[envValue]
 					if found {
 						// second try: read it from env.
 						currentField.SetBool(theValue)
@@ -864,7 +864,7 @@ func parseFinalConfig(v any, configValue *ConfigParser) error {
 				continue
 			}
 
-			theValue, found = boolMapping[fByName.Tag.Get("default")]
+			theValue, found = BoolMapping[fByName.Tag.Get("default")]
 			if found {
 				// third try: from default value.
 				currentField.SetBool(theValue)
@@ -1530,7 +1530,7 @@ func parseToBoolArray(value string) []bool {
 
 	for i := 0; i < len(arr); i++ {
 		arr[i] = strings.TrimSpace(arr[i])
-		theValue, found := boolMapping[strings.ToLower(arr[i])]
+		theValue, found := BoolMapping[strings.ToLower(arr[i])]
 		if !found {
 			continue
 		}

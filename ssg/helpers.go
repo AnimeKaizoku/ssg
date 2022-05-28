@@ -317,12 +317,7 @@ func RunCommandAsyncWithChan(command string, finishedChan chan bool) *ExecuteCom
 }
 
 func ToBool(str string) bool {
-	str = strings.ToLower(strings.TrimSpace(str))
-	if str == LowerYes || str == LowerTrueStr || str == LowerOnStr {
-		return true
-	}
-
-	return false
+	return strongParser.BoolMapping[strings.ToLower(strings.TrimSpace(str))]
 }
 
 func ToBase10(value int64) string {

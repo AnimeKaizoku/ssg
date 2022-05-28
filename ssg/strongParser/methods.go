@@ -244,7 +244,7 @@ func (p *ConfigParser) GetBool(section, option string) (bool, error) {
 
 	result = strings.ToLower(result)
 
-	booleanValue, present := boolMapping[result]
+	booleanValue, present := BoolMapping[result]
 	if !present {
 		return false, fmt.Errorf("not a boolean: '%s'", result)
 	}
