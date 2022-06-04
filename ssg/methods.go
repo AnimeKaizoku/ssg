@@ -1483,6 +1483,7 @@ func (e *ExpiringValue[T]) SetValue(value T) {
 }
 
 func (e *ExpiringValue[T]) GetValue() T {
+	e.Reset()
 	return e._value
 }
 

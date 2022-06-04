@@ -387,6 +387,10 @@ func IsMixedCase(value string) bool {
 	return strings.ToLower(value) != value && strings.ToUpper(value) != value
 }
 
+func RecoverPanic() {
+	_ = recover()
+}
+
 func GetEmptyList[T comparable]() GenericList[T] {
 	return &ListW[T]{}
 }
