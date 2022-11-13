@@ -90,7 +90,9 @@ type SafeEMap[TKey comparable, TValue any] struct {
 }
 
 // EndpointResponse is the generalized form of a response from a HTTP API.
-//  T field is already a pointer in this struct, please avoid passing a pointer
+//
+//	T field is already a pointer in this struct, please avoid passing a pointer
+//
 // type, to prevent from `Result` field being a pointer to a pointer.
 type EndpointResponse[T any] struct {
 	Success bool           `json:"success"`
@@ -112,6 +114,15 @@ type RangeInt = rangeValues.IntegerRange[int]
 type RangeInt32 = rangeValues.IntegerRange[int32]
 type RangeInt64 = rangeValues.IntegerRange[int64]
 type RangeFloat64 = rangeValues.RangeFloat64
+
+type Int64Container = rangeValues.IntContainer[int64]
+type UInt64Container = rangeValues.IntContainer[uint64]
+type Int32Container = rangeValues.IntContainer[int32]
+type UInt32Container = rangeValues.IntContainer[uint32]
+type Int16Container = rangeValues.IntContainer[int16]
+type UInt16Container = rangeValues.IntContainer[uint16]
+type Int8Container = rangeValues.IntContainer[int8]
+type UInt8Container = rangeValues.IntContainer[uint8]
 
 type ExecuteCommandResult = shellUtils.ExecuteCommandResult
 

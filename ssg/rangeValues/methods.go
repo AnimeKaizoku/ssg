@@ -52,6 +52,19 @@ func (r *RangeFloat64) IsValueInRange(value *RangeFloat64) bool {
 //}
 
 //---------------------------------------------------------
+
+func (c *IntContainer[T]) HasFlag(flags ...string) bool {
+	for _, current := range c.Flags {
+		for _, currentF := range flags {
+			if current == currentF {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 //---------------------------------------------------------
 //---------------------------------------------------------
 //---------------------------------------------------------

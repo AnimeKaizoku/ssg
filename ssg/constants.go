@@ -5,6 +5,8 @@
 
 package ssg
 
+import "github.com/AnimeKaizoku/ssg/ssg/internal"
+
 // the prefix values for commands.
 const (
 	COMMAND_PREFIX1 = "!"
@@ -97,7 +99,7 @@ const (
 	LowerFalseStr   = "false"
 	LowerOnStr      = "on"
 	LowerOffStr     = "off"
-	OrRegexp        = "|" // the or string sign: "|"
+	OrRegexp        = internal.OrRegexp // the or string sign: "|"
 )
 
 const (

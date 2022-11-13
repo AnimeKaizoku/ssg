@@ -6,13 +6,13 @@
 package ssg
 
 import (
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 	"unicode"
 
+	"github.com/AnimeKaizoku/ssg/ssg/internal"
 	"github.com/AnimeKaizoku/ssg/ssg/rangeValues"
 	"github.com/AnimeKaizoku/ssg/ssg/shellUtils"
 	"github.com/AnimeKaizoku/ssg/ssg/strongParser"
@@ -187,87 +187,35 @@ func GetPrettyTimeDuration(d time.Duration, shorten bool) string {
 // SplitWhite splits the string with the given separator
 // and will remove the white spaces slices from the results
 func SplitWhite(s string, separator ...string) []string {
-	return SplitSliceNWhite(s, separator, -1)
+	return internal.SplitWhite(s, separator...)
 }
 
-func SplitN(s string, n int, separator ...string) []string {
-	return SplitSliceN(s, separator, n)
+func SplitN(s string, n int, separators ...string) []string {
+	return internal.SplitN(s, n, separators...)
 }
 
-func SplitSlice(s string, separator []string) []string {
-	return SplitSliceN(s, separator, -1)
+func SplitSlice(s string, separators []string) []string {
+	return internal.SplitSlice(s, separators)
 }
 
-func SplitSliceN(s string, separator []string, n int) []string {
-	if len(separator) == BaseIndex {
-		return []string{s}
-	}
-
-	var m string
-	for i, f := range separator {
-		if i != len(separator)-1 {
-			m += regexp.QuoteMeta(f) + OrRegexp
-		} else {
-			m += regexp.QuoteMeta(f)
-		}
-	}
-
-	re, err := regexp.Compile(m)
-	if err != nil {
-		return []string{s}
-	}
-
-	return FixSplit(re.Split(s, n))
+func SplitSliceN(s string, separators []string, n int) []string {
+	return internal.SplitSliceN(s, separators, n)
 }
 
-func SplitSliceNWhite(s string, separator []string, n int) []string {
-	if len(separator) == BaseIndex {
-		return []string{s}
-	}
-
-	var m string
-	for i, f := range separator {
-		if i != len(separator)-1 {
-			m += regexp.QuoteMeta(f) + OrRegexp
-		} else {
-			m += regexp.QuoteMeta(f)
-		}
-	}
-
-	re, err := regexp.Compile(m)
-	if err != nil {
-		return []string{s}
-	}
-
-	return FixSplitWhite(re.Split(s, n))
+func SplitSliceNWhite(s string, separators []string, n int) []string {
+	return internal.SplitSliceNWhite(s, separators, n)
 }
 
 // FixSplit will fix the bullshit bug in the
 // Split function (which is not ignoring the spaces between strings).
 func FixSplit(myStrings []string) []string {
-	final := make([]string, BaseIndex, cap(myStrings))
-
-	for _, current := range myStrings {
-		if current != "" {
-			final = append(final, current)
-		}
-	}
-
-	return final
+	return internal.FixSplit(myStrings)
 }
 
 // FixSplit will fix the bullshit bug in the
 // Split function (which is not ignoring the spaces between strings).
 func FixSplitWhite(myStrings []string) []string {
-	final := make([]string, BaseIndex, cap(myStrings))
-
-	for _, current := range myStrings {
-		if strings.TrimSpace(current) != "" {
-			final = append(final, current)
-		}
-	}
-
-	return final
+	return internal.FixSplitWhite(myStrings)
 }
 
 // IsEmpty function will check if the passed-by
