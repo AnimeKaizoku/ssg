@@ -13,6 +13,10 @@ func RunCommand(command string) *ExecuteCommandResult {
 	return runCommand(command, false, nil)
 }
 
+func RunPowerShell(command string) *ExecuteCommandResult {
+	return runPowerShell(command, false, nil)
+}
+
 func RunCommandAsync(command string) *ExecuteCommandResult {
 	return runCommand(command, true, nil)
 }
@@ -73,7 +77,7 @@ func runPowerShell(command string, isAsync bool, finishedChan chan bool) *Execut
 		return result
 	} else {
 		result = executePowerShell(command, &ExecuteCommandConfig{
-			TargetRunner:           GetCommandTargetRunner(),
+			TargetRunner:           GetPowerShellRunner(),
 			PrimaryArgs:            GetPowerShellPrimaryArgs(),
 			Stdout:                 stdout,
 			Stderr:                 stderr,
@@ -194,7 +198,7 @@ func executePowerShell(
 
 	if config.RemovePowerShellPrompt && !strings.Contains(command, "function prompt") {
 		// hacky way of getting rid of powershell prompt
-		command = PowerShellPromptOverride + command
+		command = PowerShellPromptOverride + "\n" + command
 	}
 
 	cmd = exec.Command(config.TargetRunner, config.PrimaryArgs...)

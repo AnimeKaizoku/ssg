@@ -256,6 +256,10 @@ func RunCommand(command string) *ExecuteCommandResult {
 	return shellUtils.RunCommand(command)
 }
 
+func RunPowerShell(command string) *ExecuteCommandResult {
+	return shellUtils.RunPowerShell(command)
+}
+
 func RunCommandAsync(command string) *ExecuteCommandResult {
 	return shellUtils.RunCommandAsync(command)
 }
