@@ -198,7 +198,7 @@ func executePowerShell(
 
 	if config.RemovePowerShellPrompt && !strings.Contains(command, "function prompt") {
 		// hacky way of getting rid of powershell prompt
-		command = PowerShellPromptOverride + "\n" + command
+		command = PowerShellPromptOverride + "\n" + command + "\n"
 	}
 
 	cmd = exec.Command(config.TargetRunner, config.PrimaryArgs...)

@@ -29,6 +29,7 @@ func TestPowerShell01(t *testing.T) {
 }
 
 func TestPowerShell02(t *testing.T) {
+	//Write-Output ("ok" + $PSVersionTable.PSVersion.Major.ToString() + "`n`n" + $PSVersionTable.PSVersion)
 	result := ssg.RunPowerShell("$PSVersionTable.PSVersion")
 	result.PurifyPowerShellOutput()
 
@@ -44,4 +45,11 @@ func TestPowerShell03(t *testing.T) {
 	result.PurifyPowerShellOutput()
 
 	log.Println(result.Stdout)
+}
+
+func TestPowerShell04(t *testing.T) {
+	result := ssg.RunPowerShell("Write-Output (\"ok\" + $PSVersionTable.PSVersion.Major.ToString() + \"`n`n\" + $PSVersionTable.PSVersion)")
+	result.PurifyPowerShellOutput()
+
+	fmt.Println(result.Stdout)
 }
