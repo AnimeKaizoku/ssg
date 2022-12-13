@@ -8,14 +8,31 @@ import (
 )
 
 type ExecuteCommandConfig struct {
+	TargetRunner   string
+	PrimaryArgs    []string
 	Stdin          io.Reader
 	Stdout         io.Writer
 	Stderr         io.Writer
 	AdditionalArgs []string
 	AdditionalEnv  []string
-	ExtraFiles     []*os.File
-	FinishedChan   chan bool
 
+	// ExtraFiles specifies additional open files to be inherited by the new process.
+	// It does not include standard input, standard output, or standard error.
+	// If non-nil, entry i becomes file descriptor 3+i.
+	// ExtraFiles is not supported on Windows.
+	ExtraFiles []*os.File
+
+	FinishedChan chan bool
+
+	// IsAsync field determines whether the command should be run
+	// async or not. if this field is set to false, the execute
+	// function will block the current goroutine until the process
+	// ends completely.
+	IsAsync                bool
+	RemovePowerShellPrompt bool
+
+	// autoSetOutput determines whether the output reader should
+	// set automatically or not.
 	autoSetOutput bool
 }
 
@@ -43,7 +60,15 @@ type ExecuteCommandResult struct {
 
 	autoSetOutput bool
 	cmd           *exec.Cmd
+	pipedStdin    io.WriteCloser
 	mutex         *sync.Mutex
+}
+
+type StdinWrapper struct {
+	InnerWriter io.WriteCloser
+
+	OnWrite []func(p []byte) (n int, err error)
+	OnClose []func() error
 }
 
 type ExecuteResultEventHandler func(result *ExecuteCommandResult)

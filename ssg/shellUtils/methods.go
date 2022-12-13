@@ -1,6 +1,7 @@
 package shellUtils
 
 import (
+	"strings"
 	"time"
 )
 
@@ -84,4 +85,86 @@ func (r *ExecuteCommandResult) Release() error {
 	r.IsFinished = true
 
 	return r.cmd.Process.Release()
+}
+
+func (r *ExecuteCommandResult) ClosePipes() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.pipedStdin != nil {
+		err := r.pipedStdin.Close()
+		r.pipedStdin = nil
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// PurifyOutput will purify the stdout of the result and will
+// set the purified version of the output. If you just want to
+// get the purified version without setting the new value, use
+func (r *ExecuteCommandResult) PurifyPowerShellOutput() string {
+	r.Stdout = r.GetPurifiedPowerShellOutput()
+	return r.Stdout
+}
+
+func (r *ExecuteCommandResult) GetPurifiedPowerShellOutput() string {
+	myStrs := strings.Split(r.Stdout, "\n")
+	if len(myStrs) == 0 {
+		return ""
+	}
+
+	// if the override doesn't exist, don't do any operation, just
+	// return the original value.
+	if !strings.Contains(myStrs[0], PowerShellPromptOverride) {
+		return r.Stdout
+	}
+
+	purifiedOutput := &strings.Builder{}
+	for i, currentLine := range myStrs {
+		if i == 0 {
+			// it's guaranteed that the first line is our prompt override.
+			continue
+		}
+
+		if strings.HasPrefix(currentLine, PromptIgnoreSSG) {
+			continue
+		}
+
+		purifiedOutput.WriteString(currentLine)
+		purifiedOutput.WriteRune('\n')
+	}
+
+	return strings.TrimSpace(purifiedOutput.String())
+}
+
+// --------------------------------------------------------
+
+func (r *StdinWrapper) Write(p []byte) (n int, err error) {
+	if len(r.OnWrite) > 0 {
+		for _, currentHandler := range r.OnWrite {
+			n, err = currentHandler(p)
+			if err != nil {
+				return n, err
+			}
+		}
+	}
+
+	return r.InnerWriter.Write(p)
+}
+
+func (r *StdinWrapper) Close() error {
+	if len(r.OnClose) > 0 {
+		var err error
+		for _, currentHandler := range r.OnClose {
+			err = currentHandler()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return r.InnerWriter.Close()
 }

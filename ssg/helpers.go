@@ -260,8 +260,18 @@ func RunCommandAsync(command string) *ExecuteCommandResult {
 	return shellUtils.RunCommandAsync(command)
 }
 
+// RunCommandAsyncWithChan runs the given command in another goroutine and returns back
+// from the function immediately. It will sends `true` to `finishedChan` the moment
+// it's done executing the command.
 func RunCommandAsyncWithChan(command string, finishedChan chan bool) *ExecuteCommandResult {
 	return shellUtils.RunCommandAsyncWithChan(command, finishedChan)
+}
+
+// RunCommandAsyncWithChan runs the given command in another goroutine and returns back
+// from the function immediately. It will sends `true` to `finishedChan` the moment
+// it's done executing the command.
+func RunPowerShellAsyncWithChan(command string, finishedChan chan bool) *ExecuteCommandResult {
+	return shellUtils.RunPowerShellAsyncWithChan(command, finishedChan)
 }
 
 func ToBool(str string) bool {
