@@ -15,6 +15,19 @@ const (
 	Write-Output $theWrite.GetType()
 	
 	`
+
+	PSCode02 = `
+	function Get-GoFirstTenProcesses {
+		return Get-Process -Name "*go*" | Select-Object -First 10
+	}
+
+	$ok = Get-GoFirstTenProcesses
+	
+	$ok[0].GetType().FullName
+
+	Write-Output "We are done."
+	Write-Output "Now!"
+	`
 )
 
 func TestPowerShell01(t *testing.T) {
@@ -30,7 +43,8 @@ func TestPowerShell01(t *testing.T) {
 
 func TestPowerShell02(t *testing.T) {
 	//Write-Output ("ok" + $PSVersionTable.PSVersion.Major.ToString() + "`n`n" + $PSVersionTable.PSVersion)
-	result := ssg.RunPowerShell("$PSVersionTable.PSVersion")
+	// result := ssg.RunPowerShell("$PSVersionTable.PSVersion")
+	result := ssg.RunPowerShell(PSCode02)
 	result.PurifyPowerShellOutput()
 
 	fmt.Println(result.Stdout)

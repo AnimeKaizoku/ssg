@@ -3,6 +3,7 @@ package shellUtils
 import (
 	"strings"
 	"time"
+	"unicode"
 )
 
 // WaitAndRun method waits for the execution to either finish or gets cancelled.
@@ -131,6 +132,14 @@ func (r *ExecuteCommandResult) GetPurifiedPowerShellOutput() string {
 
 		if strings.HasPrefix(currentLine, PromptIgnoreSSG) {
 			continue
+		}
+
+		if strings.HasPrefix(currentLine, ">>") {
+			// looks like something we should be removing
+			currentLine = strings.TrimLeft(currentLine, ">")
+			if unicode.IsSpace(rune(currentLine[0])) {
+				continue
+			}
 		}
 
 		purifiedOutput.WriteString(currentLine)
