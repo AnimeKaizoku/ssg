@@ -25,8 +25,12 @@ func (s *SafeMap[TKey, TValue]) Exists(key TKey) bool {
 
 func (s *SafeMap[TKey, TValue]) Add(key TKey, value *TValue) {
 	s.lock()
+	defer s.unlock()
+
+	if s._disabled {
+		return
+	}
 	s.values[key] = value
-	s.unlock()
 }
 
 func (s *SafeMap[TKey, TValue]) ForEach(fn func(TKey, *TValue) bool) {

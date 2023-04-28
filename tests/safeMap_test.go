@@ -24,6 +24,54 @@ var defaultDummy dummyStructType[TopString] = dummyStructType[TopString]{
 	tMember: "20",
 }
 
+func TestSafeMapDisable(t *testing.T) {
+	myMap := ssg.NewSafeMap[string, bool]()
+	myMap.Disable()
+	myMap.Set("1", true)
+	myMap.Set("2", true)
+	myMap.Enable()
+	myMap.Set("3", true)
+
+	if myMap.Exists("1") {
+		t.Error("Expected false for myMap.Exists(1), got:", myMap.Exists("1"))
+		return
+	}
+
+	if myMap.Exists("2") {
+		t.Error("Expected false for myMap.Exists(2), got:", myMap.Exists("2"))
+		return
+	}
+
+	if !myMap.Exists("3") {
+		t.Error("Expected true for myMap.Exists(3), got:", myMap.Exists("3"))
+		return
+	}
+}
+
+func TestSafeEMapDisable(t *testing.T) {
+	myMap := ssg.NewSafeEMap[string, bool]()
+	myMap.Disable()
+	myMap.Set("1", true)
+	myMap.Set("2", true)
+	myMap.Enable()
+	myMap.Set("3", true)
+
+	if myMap.Exists("1") {
+		t.Error("Expected false for myMap.Exists(1), got:", myMap.Exists("1"))
+		return
+	}
+
+	if myMap.Exists("2") {
+		t.Error("Expected false for myMap.Exists(2), got:", myMap.Exists("2"))
+		return
+	}
+
+	if !myMap.Exists("3") {
+		t.Error("Expected true for myMap.Exists(3), got:", myMap.Exists("3"))
+		return
+	}
+}
+
 func TestSafeMap01(t *testing.T) {
 	m1 := ssg.NewSafeMap[int, string]()
 	m2 := ssg.NewSafeMap[string, string]()
