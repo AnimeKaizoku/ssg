@@ -54,9 +54,13 @@ type AdvancedMap[TKey comparable, TValue any] struct {
 type SafeMap[TKey comparable, TValue any] struct {
 	mut    *sync.RWMutex
 	values map[TKey]*TValue
+
 	// _default field is the default value this map has to return in GetValue
 	// method when the key is not found.
 	_default TValue
+
+	// _disabled determines whether the map is disabled or not.
+	_disabled bool
 }
 
 type NumIdGenerator[T rangeValues.Integer] struct {
@@ -83,6 +87,9 @@ type SafeEMap[TKey comparable, TValue any] struct {
 	// quickly remove it from the slice above.
 	sliceKeyIndex map[TKey]int
 	_default      TValue
+
+	// _disabled determines whether the map is disabled or not.
+	_disabled bool
 
 	// onExpired is the event function that will be called when a value with the certain
 	// key on the map is expired. this event function will be called in a new goroutine.
