@@ -7,4 +7,4 @@ module github.com/AnimeKaizoku/ssg
 
 go 1.18
 
-require golang.org/x/text v0.5.0
+require golang.org/x/text v0.9.0
