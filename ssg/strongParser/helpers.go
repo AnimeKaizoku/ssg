@@ -46,13 +46,20 @@ func NewConfigParserFromFile(filename string) (*ConfigParser, error) {
 // Parse takes a filename and parses it into a ConfigParser value.
 func Parse(filename string) (*ConfigParser, error) {
 	file, err := os.Open(filename)
-	defer func() {
-		_ = file.Close()
-	}()
-
 	if err != nil {
+		if strings.Contains(filename, ":virtual") {
+			// don't complain on virtual file
+			return parseString("")
+		}
+
 		return nil, err
 	}
+
+	defer func() {
+		if file != nil {
+			_ = file.Close()
+		}
+	}()
 	p, err := parseFile(file)
 	if err != nil {
 		return nil, err
@@ -615,7 +622,7 @@ func parseString(value string) (*ConfigParser, error) {
 		line := strings.TrimSpace(current)
 
 		// Skip comment lines and empty lines
-		if strings.HasPrefix(line, "#") || line == "" {
+		if strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") || line == "" {
 			continue
 		}
 

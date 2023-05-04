@@ -171,6 +171,31 @@ func TestStrongParser(t *testing.T) {
 	log.Println(myValue)
 }
 
+func TestVirtualConfigFile(t *testing.T) {
+	type myType struct {
+		Field1 string
+		Field2 string
+	}
+
+	os.Setenv("field1", "hello")
+	os.Setenv("field2", "hi")
+
+	myValue := &myType{}
+	err := strongParser.ParseConfig(myValue, "config_no_exists.ini:virtual")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if myValue.Field1 != "hello" {
+		t.Errorf("Field1 should be hello, got: %s", myValue.Field1)
+	}
+
+	if myValue.Field2 != "hi" {
+		t.Errorf("Field1 should be hi, got: %s", myValue.Field2)
+	}
+}
+
 func TestParseFromEnv(t *testing.T) {
 	myValue := &MyConfigStruct{}
 	os.Setenv("API_URL", "google.com")
