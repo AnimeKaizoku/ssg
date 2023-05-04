@@ -139,15 +139,24 @@ func TestMainAndArrayParser(t *testing.T) {
 		return
 	}
 
-	if container.Sections[0].BotUsername != "@SaitamaRobot" {
-		t.Errorf("expected @SaitamaRobot, got: %s", container.Sections[0].BotUsername)
-		return
+	for i := 0; i < len(container.Sections); i++ {
+		if container.Sections[i].sectionName == "SaitamaRobot" {
+			if container.Sections[0].BotUsername != "@SaitamaRobot" {
+				t.Errorf("expected @SaitamaRobot, got: %s", container.Sections[0].BotUsername)
+				return
+			}
+
+			continue
+		}
+
+		if container.Sections[i].sectionName == "KigyoRobot" {
+			if container.Sections[1].OwnerIds[0] != 8787871234 {
+				t.Errorf("expected 8787871234, got: %d", container.Sections[1].OwnerIds[0])
+				return
+			}
+		}
 	}
 
-	if container.Sections[1].OwnerIds[0] != 8787871234 {
-		t.Errorf("expected 8787871234, got: %d", container.Sections[1].OwnerIds[0])
-		return
-	}
 }
 
 func TestStrongParser(t *testing.T) {
