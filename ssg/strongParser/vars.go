@@ -6,10 +6,9 @@ import (
 )
 
 var (
-	sectionHeader = regexp.MustCompile(`\[([^]]+)\]`)
-	keyValue      = regexp.MustCompile(`([^:=\s][^:=]*)\s*(?P<vi>[:=])\s*(.*)$`)
-	//continuationLine = regexp.MustCompile(`\w+(.*)$`)
-	//interpolator = regexp.MustCompile(`%\(([^)]*)\)s`)
+	sectionHeader      = regexp.MustCompile(`\[([^]]+)\]`)
+	keyValue           = regexp.MustCompile(`([^:=\s][^:=]*)\s*(?P<vi>[:=])\s*(.*)$`)
+	DefaultMainSection = "main"
 )
 
 // BoolMapping is a map of strings to bool.

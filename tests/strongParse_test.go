@@ -10,10 +10,12 @@ import (
 
 type MyConfigStruct struct {
 	TheToken        string     `section:"main" key:"the_token"`
+	MyToken         string     `key:"the_token"`
 	BotId           *int64     `section:"main" key:"bot_id"`
 	BotName         *string    `section:"main" key:"bot_name"`
 	BotComplex      complex128 `section:"main" key:"bot_complex"`
-	BotUsername     string     `section:"telegram" key:"bot_username"`
+	TheUsername     string     `section:"telegram" key:"bot_username"`
+	BotUsername     string     `section:"telegram"`
 	SinglePrefix    rune       `section:"telegram" key:"single_prefix" type:"rune"`
 	CmdPrefixed     []rune     `section:"telegram" key:"cmd_prefixes" type:"[]rune"`
 	BotOwner        int64      `section:"telegram" key:"bot_owner"`
@@ -24,6 +26,9 @@ type MyConfigStruct struct {
 	DatabaseUrl     string     `section:"database" key:"url"`
 	UseSqlite       bool       `section:"database" key:"use_sqlite" default:"true"`
 	APIUrl          string     `key:"api_url"`
+	MyUser          string
+	MyBool          bool
+	OwnerUsernames  []string
 }
 
 type MainSectionStruct struct {
@@ -93,7 +98,7 @@ cmd_prefixes = /, !, #
 the_token = 72345:abcd
 bot_username = @kigyorobot
 bot_owner = 123456
-owner_ids = 123456, 1234567
+owner_ids = 8787871234, 1234567
 owner_names = sayan, aliwoto, sawada
 owner_numbers = 1234567, 12345678, 123456789
 owner_supporting = true, false, true
@@ -133,6 +138,16 @@ func TestMainAndArrayParser(t *testing.T) {
 		t.Error("got nil container")
 		return
 	}
+
+	if container.Sections[0].BotUsername != "@SaitamaRobot" {
+		t.Errorf("expected @SaitamaRobot, got: %s", container.Sections[0].BotUsername)
+		return
+	}
+
+	if container.Sections[1].OwnerIds[0] != 8787871234 {
+		t.Errorf("expected 8787871234, got: %d", container.Sections[1].OwnerIds[0])
+		return
+	}
 }
 
 func TestStrongParser(t *testing.T) {
@@ -143,12 +158,26 @@ func TestStrongParser(t *testing.T) {
 		return
 	}
 
+	if myValue.TheToken != myValue.MyToken {
+		t.Errorf("TheToken should be equal to MyToken, got: %s", myValue.TheToken)
+		return
+	}
+
+	if myValue.BotUsername != myValue.TheUsername {
+		t.Errorf("BotUsername should be equal to MyUsername, got: %s", myValue.BotUsername)
+		return
+	}
+
 	log.Println(myValue)
 }
 
 func TestParseFromEnv(t *testing.T) {
 	myValue := &MyConfigStruct{}
 	os.Setenv("API_URL", "google.com")
+	os.Setenv("my_user", "woto")
+	os.Setenv("MY_BOOL", "yes")
+	os.Setenv("owner_usernames", "abcd abc123 ab12345 a7634")
+
 	err := strongParser.ParseStringConfigWithOption(myValue, TheStrValue01, &strongParser.ConfigParserOptions{
 		ReadEnv: true,
 	})
@@ -159,6 +188,21 @@ func TestParseFromEnv(t *testing.T) {
 
 	if myValue.APIUrl != "google.com" {
 		t.Errorf("APIUrl should be google.com, got: %s", myValue.APIUrl)
+		return
+	}
+
+	if myValue.MyUser != "woto" {
+		t.Errorf("MyUser should be woto, got: %s", myValue.MyUser)
+		return
+	}
+
+	if !myValue.MyBool {
+		t.Error("MyBool should be true")
+		return
+	}
+
+	if myValue.OwnerUsernames[2] != "ab12345" {
+		t.Errorf("OwnerUsernames[0] should be abcd, got: %s", myValue.OwnerUsernames[0])
 		return
 	}
 }

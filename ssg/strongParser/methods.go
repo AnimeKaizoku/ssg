@@ -3,6 +3,7 @@ package strongParser
 import (
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
@@ -106,7 +107,7 @@ func (p *ConfigParser) GetIntByType(section, option, fType string) (int64, error
 	case "int64", "int32", "int", "int16", "int8":
 		value, err = strconv.ParseInt(result, 10, 64)
 	case "rune":
-		value = int64(p.parseAsRune(result))
+		value = int64(parseAsRune(result))
 	}
 
 	return value, err
@@ -204,10 +205,6 @@ func (p *ConfigParser) GetRune(section, option string) rune {
 	return ([]rune(result))[0]
 }
 
-func (p *ConfigParser) parseAsRune(value string) rune {
-	return ([]rune(value))[0]
-}
-
 func (p *ConfigParser) GetFloat64(section, option string) (float64, error) {
 	result, err := p.Get(section, option)
 	if err != nil {
@@ -263,10 +260,32 @@ func (p *ConfigParser) GetStringSlice(section, option string) ([]string, error) 
 
 // getArrayValueToSet returns array value to set.
 // s is section; o is option; k is kind.
-func (p *ConfigParser) getArrayValueToSet(s, o string, k reflect.Kind, isRune bool) (rValue, error) {
-	result, err := p.Get(s, o)
-	if err != nil {
-		return invalidReflectValue, err
+func (p *ConfigParser) getArrayValueToSet(
+	section, key, envKey string,
+	k reflect.Kind, isRune bool) (rValue, error) {
+	result, err := p.Get(section, key)
+	if err != nil || result == "" {
+		// second try: read from environment variable
+		var envTries []string
+
+		if envKey != "" {
+			envTries = append(envTries, envKey)
+		}
+		envTries = append(envTries, strings.ToUpper(section)+"_"+strings.ToUpper(key))
+		envTries = append(envTries, key)
+		envTries = append(envTries, strings.ToUpper(key))
+
+		for _, envTry := range envTries {
+			result = os.Getenv(envTry)
+			if result != "" {
+				break
+			}
+		}
+	}
+
+	if result == "" {
+		// TODO: Add support for default values in arrays
+		return invalidReflectValue, errors.New("getArrayValueToSet: no value found")
 	}
 
 	switch k {

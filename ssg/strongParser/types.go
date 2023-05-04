@@ -48,3 +48,5 @@ type SectionValue interface {
 	SetSectionName(name string)
 	GetSectionName() string
 }
+
+type fieldValueConverter[T comparable] func(fType, fValue string) (T, error)
