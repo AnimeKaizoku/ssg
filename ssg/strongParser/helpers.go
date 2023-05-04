@@ -45,9 +45,14 @@ func NewConfigParserFromFile(filename string) (*ConfigParser, error) {
 
 // Parse takes a filename and parses it into a ConfigParser value.
 func Parse(filename string) (*ConfigParser, error) {
+	virtualFlag := strings.Contains(filename, ":virtual")
+	if virtualFlag {
+		filename = strings.ReplaceAll(filename, ":virtual", "")
+	}
+
 	file, err := os.Open(filename)
 	if err != nil {
-		if strings.Contains(filename, ":virtual") {
+		if virtualFlag {
 			// don't complain on virtual file
 			return parseString("")
 		}
