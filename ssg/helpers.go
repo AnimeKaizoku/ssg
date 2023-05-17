@@ -282,32 +282,32 @@ func ToBool(str string) bool {
 	return strongParser.BoolMapping[strings.ToLower(strings.TrimSpace(str))]
 }
 
-func ToBase10(value int64) string {
-	return strconv.FormatInt(value, 10)
+func ToBase10[T rangeValues.Integer](value T) string {
+	return strconv.FormatInt(int64(value), 10)
 }
 
-func ToBase16(value int64) string {
-	return strconv.FormatInt(value, 16)
+func ToBase16[T rangeValues.Integer](value T) string {
+	return strconv.FormatInt(int64(value), 16)
 }
 
-func ToBase18(value int64) string {
-	return strconv.FormatInt(value, 18)
+func ToBase18[T rangeValues.Integer](value T) string {
+	return strconv.FormatInt(int64(value), 18)
 }
 
-func ToBase20(value int64) string {
-	return strconv.FormatInt(value, 20)
+func ToBase20[T rangeValues.Integer](value T) string {
+	return strconv.FormatInt(int64(value), 20)
 }
 
-func ToBase28(value int64) string {
-	return strconv.FormatInt(value, 28)
+func ToBase28[T rangeValues.Integer](value T) string {
+	return strconv.FormatInt(int64(value), 28)
 }
 
-func ToBase30(value int64) string {
-	return strconv.FormatInt(value, 30)
+func ToBase30[T rangeValues.Integer](value T) string {
+	return strconv.FormatInt(int64(value), 30)
 }
 
-func ToBase32(value int64) string {
-	return strconv.FormatInt(value, 32)
+func ToBase32[T rangeValues.Integer](value T) string {
+	return strconv.FormatInt(int64(value), 32)
 }
 
 func ToValidIntegerString(value string) string {
@@ -328,6 +328,36 @@ func Title(value string) string {
 func ToInt64(value string) int64 {
 	i, _ := strconv.ParseInt(ToValidIntegerString(value), 10, 64)
 	return i
+}
+
+// ToInteger converts a specified string value to integer.
+func ToInteger[T rangeValues.Integer](value string) T {
+	var defaultValue T
+
+	switch interface{}(defaultValue).(type) {
+	case int:
+		return T(ToInt64(value))
+	case int64:
+		return T(ToInt64(value))
+	case int32:
+		return T(ToInt32(value))
+	case int16:
+		return T(ToInt16(value))
+	case int8:
+		return T(ToInt8(value))
+	case uint:
+		return T(ToInt64(value))
+	case uint64:
+		return T(ToInt64(value))
+	case uint32:
+		return T(ToInt32(value))
+	case uint16:
+		return T(ToInt16(value))
+	case uint8:
+		return T(ToInt8(value))
+	}
+
+	return defaultValue
 }
 
 func ToInt32(value string) int32 {
