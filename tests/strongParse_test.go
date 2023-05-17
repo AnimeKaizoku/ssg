@@ -141,8 +141,8 @@ func TestMainAndArrayParser(t *testing.T) {
 
 	for i := 0; i < len(container.Sections); i++ {
 		if container.Sections[i].sectionName == "SaitamaRobot" {
-			if container.Sections[0].BotUsername != "@SaitamaRobot" {
-				t.Errorf("expected @SaitamaRobot, got: %s", container.Sections[0].BotUsername)
+			if container.Sections[i].BotUsername != "@SaitamaRobot" {
+				t.Errorf("expected @SaitamaRobot, got: %s", container.Sections[i].BotUsername)
 				return
 			}
 
@@ -150,8 +150,8 @@ func TestMainAndArrayParser(t *testing.T) {
 		}
 
 		if container.Sections[i].sectionName == "KigyoRobot" {
-			if container.Sections[1].OwnerIds[0] != 8787871234 {
-				t.Errorf("expected 8787871234, got: %d", container.Sections[1].OwnerIds[0])
+			if container.Sections[i].OwnerIds[0] != 8787871234 {
+				t.Errorf("expected 8787871234, got: %d", container.Sections[i].OwnerIds[0])
 				return
 			}
 		}
@@ -236,7 +236,7 @@ func TestParseFromEnv(t *testing.T) {
 	}
 
 	if myValue.OwnerUsernames[2] != "ab12345" {
-		t.Errorf("OwnerUsernames[0] should be abcd, got: %s", myValue.OwnerUsernames[0])
+		t.Errorf("OwnerUsernames[2] should be ab12345, got: %s", myValue.OwnerUsernames[2])
 		return
 	}
 }
