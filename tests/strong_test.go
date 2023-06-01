@@ -14,6 +14,24 @@ import (
 	ws "github.com/AnimeKaizoku/ssg/ssg"
 )
 
+func TestAppendUnique(t *testing.T) {
+	myArray := []int32{1, 2, 3, 4, 5}
+	myArray = ws.AppendUnique(myArray, 1, 10, 22)
+
+	if len(myArray) != 7 {
+		t.Error("Expected 7, got", len(myArray))
+		return
+	}
+
+	anotherArray := []int32{1, 2, 3, 4, 6}
+	anotherArray = ws.AppendUnique(anotherArray, myArray...)
+
+	if len(anotherArray) != 8 {
+		t.Error("Expected 8, got", len(anotherArray))
+		return
+	}
+}
+
 func TestClone(t *testing.T) {
 	myValue := &struct {
 		Name string
