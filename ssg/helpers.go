@@ -282,6 +282,12 @@ func ToBool(str string) bool {
 	return strongParser.BoolMapping[strings.ToLower(strings.TrimSpace(str))]
 }
 
+// AppendUnique appends the given value to the given slice if it's not already there.
+// WARNING: Performance is not good for large slices.
+func AppendUnique[T comparable](slice []T, value T) []T {
+	return internal.AppendUnique(slice, value)
+}
+
 func ToBase10[T rangeValues.Integer](value T) string {
 	return strconv.FormatInt(int64(value), 10)
 }

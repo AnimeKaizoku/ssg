@@ -182,12 +182,14 @@ func TestStrongParser(t *testing.T) {
 
 func TestVirtualConfigFile(t *testing.T) {
 	type myType struct {
-		Field1 string
-		Field2 string
+		Field1   string
+		Field2   string
+		DevUsers []int64
 	}
 
 	os.Setenv("field1", "hello")
 	os.Setenv("field2", "hi")
+	os.Setenv("DEV_USERS", "123456789 1234567890")
 
 	myValue := &myType{}
 	err := strongParser.ParseConfig(myValue, "config_no_exists.ini:virtual")

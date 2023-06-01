@@ -90,3 +90,23 @@ func FixSplitWhite(myStrings []string) []string {
 
 	return final
 }
+
+func AppendUnique[T comparable](slice []T, target ...T) []T {
+	for _, t := range target {
+		if !Contains(slice, t) {
+			slice = append(slice, t)
+		}
+	}
+
+	return slice
+}
+
+func Contains[T comparable](slice []T, target T) bool {
+	for _, t := range slice {
+		if t == target {
+			return true
+		}
+	}
+
+	return false
+}
