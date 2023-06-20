@@ -355,12 +355,13 @@ func parseFinalConfig(v any, section string, configValue *ConfigParser) error {
 			}
 
 			myKind := getArrayKind(fByName.Type)
-			if section == "" {
-				section = fByName.Tag.Get("section")
+			currentSection := section
+			if currentSection == "" {
+				currentSection = fByName.Tag.Get("section")
 			}
 
-			if section == "" {
-				section = configValue.options.MainSectionName
+			if currentSection == "" {
+				currentSection = configValue.options.MainSectionName
 			}
 
 			key := fByName.Tag.Get("key")
@@ -373,7 +374,7 @@ func parseFinalConfig(v any, section string, configValue *ConfigParser) error {
 			isRune := fType == "rune" || fType == "[]rune"
 
 			valueToSet, err := configValue.getArrayValueToSet(
-				section, key, envKey,
+				currentSection, key, envKey,
 				myKind, isRune,
 			)
 			if err != nil || valueToSet.IsNil() || !valueToSet.IsValid() {
